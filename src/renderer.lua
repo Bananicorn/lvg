@@ -5,6 +5,7 @@ end
 
 function draw_paths ()
 	love.graphics.setLineWidth(5)
+	love.graphics.setColor(1,1,1,.2)
 	for i = 1, #test_svg.paths do
 		for j = 1, #test_svg.paths[i] do
 			love.graphics.line(test_svg.paths[i][j])
