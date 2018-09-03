@@ -1,3 +1,10 @@
+function join_tables (table_1, table_2)
+	for i = 1,#table_2 do
+		table_1[#table_1+1] = table_2[i]
+	end
+	return table_1
+end
+
 local svg_parser = {
 	scale_factor = 1,
 	scale_factor = 1,
@@ -155,9 +162,9 @@ function svg_parser:is_valid_color (color_string)
 		return nil
 	end
 
-	function svg_parser:parse_g (tag)
-		return {}
-	end
+	-- function svg_parser:parse_g (tag)
+		-- return {}
+	-- end
 
 	function svg_parser:parse_circle (tag)
 		local shape_x = tonumber(tag["@cx"]) * self.scale_factor
@@ -304,7 +311,7 @@ function svg_parser:is_valid_color (color_string)
 			end
 			if #control_points == 8 then
 				-- curve = join_tables(curve, control_points)
-				-- curve = join_tables(curve, love.math.newBezierCurve(control_points):render(self.curve_detail))
+				curve = join_tables(curve, love.math.newBezierCurve(control_points):render(self.curve_detail))
 				control_points = {}
 				if i + 1 < #self.path_vars.sub_coords then
 					self.path_vars.path_x = self.path_vars.path_x2
@@ -375,6 +382,7 @@ function svg_parser:is_valid_color (color_string)
 				elseif char == "l" or char == "L" then
 					self:parse_path_l(char)
 				elseif char == "c" or char == "C" then
+					self:parse_path_c(char)
 				elseif char == "s" or char == "S" then
 				elseif char == "q" or char == "Q" then
 					parse_path_q(char)

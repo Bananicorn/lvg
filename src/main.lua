@@ -3,7 +3,7 @@
 require("renderer")
 function love.load ()
 	svg_parser = require("svg_parser")
-	test_svg = svg_parser:load_svg("assets/test.svg")
+	test_svg = svg_parser:load_svg("assets/bananicorn.svg")
 end
 
 function love.draw ()
