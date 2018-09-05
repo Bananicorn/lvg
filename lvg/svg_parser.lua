@@ -1,3 +1,4 @@
+require("lvg.svg")
 local svg_parser = {
 	scale_factor = 1,
 	decimal_precision = 2,
@@ -113,13 +114,12 @@ function svg_parser:load_svg (file)
 	local svg = require("lvg.xmlSimple").newParser():ParseXmlText(content)
 	local tag = svg:children()
 	self:traverse_tree(svg)
-	return_svg = {
-		scale_factor = self.scale_factor,
-		canvas = nil,
-		objects = self.objects,
-		object_styles = self.object_styles,
-		object_types = self.object_types
-	}
+	return_svg = Lvg_svg:create(
+		self.objects,
+		self.object_styles,
+		self.object_types,
+		self.scale_factor
+	)
 	self:reset()
 	return return_svg
 end

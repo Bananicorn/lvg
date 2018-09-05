@@ -1,12 +1,11 @@
-require("lvg.renderer")
 function love.load ()
-	svg_parser = require("lvg.svg_parser")
-	-- test_svg = svg_parser:load_svg("assets/bananicorn.svg")
-	test_svg = svg_parser:load_svg("assets/test.svg")
+	svg_parser = require("lvg.svg_parser") --you only need one of these
+	test_svg = svg_parser:load_svg("assets/bananicorn.svg")
+	-- test_svg = svg_parser:load_svg("assets/test.svg")
 end
 
 function love.draw ()
-	render()
+	test_svg:draw(0,100)
 end
 
 function love.update (dt)
