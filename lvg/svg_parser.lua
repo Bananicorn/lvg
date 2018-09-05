@@ -110,7 +110,7 @@ end
 function svg_parser:load_svg (file)
 	local file = assert(io.open(love.filesystem.getSourceBaseDirectory() .. '/' .. file, "rb"))
 	local content = file:read("*all")
-	local svg = require("xmlSimple").newParser():ParseXmlText(content)
+	local svg = require("lvg.xmlSimple").newParser():ParseXmlText(content)
 	local tag = svg:children()
 	self:traverse_tree(svg)
 	return_svg = {

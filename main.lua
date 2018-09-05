@@ -1,6 +1,6 @@
-require("renderer")
+require("lvg.renderer")
 function love.load ()
-	svg_parser = require("svg_parser")
+	svg_parser = require("lvg.svg_parser")
 	-- test_svg = svg_parser:load_svg("assets/bananicorn.svg")
 	test_svg = svg_parser:load_svg("assets/test.svg")
 end
