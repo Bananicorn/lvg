@@ -3,12 +3,9 @@ local svg_parser = {
 	decimal_precision = 2,
 	curve_detail = 5,
 	canvas = nil,
-	paths = {},
-	path_styles = {},
-	circles = {},
-	circle_styles = {},
-	rects = {},
-	rect_styles = {},
+	objects = {},
+	object_styles = {},
+	object_types = {},
 	path_vars = {
 		coords = "",
 		sub_coords = {},
@@ -22,9 +19,9 @@ local svg_parser = {
 	}
 }
 
-function svg_parser:round(num)
-  local mult = 10^(self.decimal_precision)
-  return math.floor(num * mult + 0.5) / mult
+function svg_parser:round (num)
+	local mult = 10^(self.decimal_precision)
+	return math.floor(num * mult + 0.5) / mult
 end
 
 function svg_parser:join_paths (path_1, path_2)
@@ -52,19 +49,15 @@ function svg_parser:remove_double_points (path)
 	return path
 end
 
-function svg_parser:reset()
+function svg_parser:reset ()
 	self.scale_factor = 1
 	self.canvas = nil
-	self.paths = {}
-	self.path_styles = {}
-	self.circles = {}
-	self.circle_styles = {}
-	self.rects = {}
-	self.rect_styles = {}
-	self:reset_path_vars()
+	self.objects = {}
+	self.object_styles = {}
+	self.object_types = {}
 end
 
-function svg_parser:reset_path_vars()
+function svg_parser:reset_path_vars ()
 	self.path_vars = {
 		coords = "",
 		sub_coords = {},
@@ -78,7 +71,7 @@ function svg_parser:reset_path_vars()
 	}
 end
 
-function svg_parser:iterator_to_table(iterator)
+function svg_parser:iterator_to_table (iterator)
 	local table = {}
 	if iterator then
 		local i = 1
@@ -117,19 +110,15 @@ end
 function svg_parser:load_svg (file)
 	local file = assert(io.open(love.filesystem.getSourceBaseDirectory() .. '/' .. file, "rb"))
 	local content = file:read("*all")
-
 	local svg = require("xmlSimple").newParser():ParseXmlText(content)
 	local tag = svg:children()
 	self:traverse_tree(svg)
 	return_svg = {
 		scale_factor = self.scale_factor,
 		canvas = nil,
-		paths = self.paths,
-		path_styles = self.path_styles,
-		circles = self.circles,
-		circle_styles = self.circle_styles,
-		rects = self.rects,
-		rect_styles = self.rect_styles
+		objects = self.objects,
+		object_styles = self.object_styles,
+		object_types = self.object_types
 	}
 	self:reset()
 	return return_svg
@@ -154,16 +143,9 @@ function svg_parser:traverse_tree (parent_tag)
 end
 
 function svg_parser:add_object (name, object, styles)
-	if name == "path" then
-		self.paths[#self.paths + 1] = object
-		self.path_styles[#self.path_styles + 1] = styles
-	elseif name == "circle" then
-		self.circles[#self.circles + 1] = object
-		self.circle_styles[#self.circle_styles + 1] = styles
-	elseif name == "rect" then
-		self.rects[#self.rects + 1] = object
-		self.rect_styles[#self.rect_styles + 1] = styles
-	end
+	self.objects[#self.objects + 1] = object
+	self.object_styles[#self.object_styles + 1] = styles
+	self.object_types[#self.object_types + 1] = name:sub(1,1):lower()
 end
 
 function svg_parser:get_styles (tag)
@@ -195,15 +177,29 @@ function svg_parser:parse_circle (tag)
 	}
 end
 
+function svg_parser:parse_ellipse (tag)
+	local x = (tonumber(tag["@cx"]) * self.scale_factor)
+	local y = (tonumber(tag["@cy"]) * self.scale_factor)
+	local rx = tonumber(tag["@rx"]) * self.scale_factor
+	local ry = tonumber(tag["@ry"]) * self.scale_factor
+
+	return {
+		x,
+		y,
+		rx,
+		ry
+	}
+end
+
 function svg_parser:parse_rect (tag)
-	local shape_x = (tonumber(tag["@x"]) * self.scale_factor)
-	local shape_y = (tonumber(tag["@y"]) * self.scale_factor)
+	local x = (tonumber(tag["@x"]) * self.scale_factor)
+	local y = (tonumber(tag["@y"]) * self.scale_factor)
 	local w = tonumber(tag["@width"]) * self.scale_factor
 	local h = tonumber(tag["@height"]) * self.scale_factor
 
 	return {
-		shape_x,
-		shape_y,
+		x,
+		y,
 		w,
 		h
 	}
@@ -287,7 +283,7 @@ end
 
 function svg_parser:parse_path_l (char)
 	self.path_vars.sub_coords = self.path_vars.coords:gmatch("%-?%d+%.?%d*,%-?%d+%.?%d*")
-	
+
 	for coord in self.path_vars.sub_coords do
 		self.path_vars.path_x2 = tonumber(self.split(coord, ",")[1]) * self.scale_factor
 		self.path_vars.path_y2 = tonumber(self.split(coord, ",")[2]) * self.scale_factor
@@ -313,7 +309,7 @@ function svg_parser:parse_path_c (char)
 	for i = 1, #self.path_vars.sub_coords do
 		self.path_vars.path_x2 = tonumber(self.split(self.path_vars.sub_coords[i], ",")[1]) * self.scale_factor
 		self.path_vars.path_y2 = tonumber(self.split(self.path_vars.sub_coords[i], ",")[2]) * self.scale_factor
-		
+
 		if char == "c" then
 			self.path_vars.path_x2 = self.path_vars.path_x + self.path_vars.path_x2
 			self.path_vars.path_y2 = self.path_vars.path_y + self.path_vars.path_y2

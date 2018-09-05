@@ -1,24 +1,37 @@
 
 function render ()
-	draw_paths()
-end
-
-function draw_paths ()
-	-- love.graphics.setLineJoin("bevel")
-	-- love.graphics.setLineWidth(5)
-	love.graphics.setColor(1,1,1,.2)
-		-- love.graphics.line(test_svg.paths[1][1][1], test_svg.paths[1][1][2], test_svg.paths[1][1][3], test_svg.paths[1][1][4], test_svg.paths[1][1][5], test_svg.paths[1][1][6], test_svg.paths[1][1][7], test_svg.paths[1][1][8], test_svg.paths[1][1][9], test_svg.paths[1][1][10], test_svg.paths[1][1][11], test_svg.paths[1][1][12], test_svg.paths[1][1][13], test_svg.paths[1][1][14], test_svg.paths[1][1][15], test_svg.paths[1][1][16], test_svg.paths[1][1][17], test_svg.paths[1][1][18], test_svg.paths[1][1][19], test_svg.paths[1][1][20])
-		-- love.graphics.line(unpack(test_svg.paths[1][1]))
-		-- love.graphics.line(test_svg.paths[1][1][5], test_svg.paths[1][1][6], test_svg.paths[1][1][7], test_svg.paths[1][1][8])
-	for i = 1, #test_svg.paths do
-		for j = 1, #test_svg.paths[i] do
-			love.graphics.line(test_svg.paths[i][j])
+	for i = 1, #test_svg.objects do
+		set_style(test_svg.object_styles[i])
+		if test_svg.object_types[i] == "p" then --path
+			draw_path(test_svg.objects[i])
+		elseif test_svg.object_types[i] == "c" then --circle
+			draw_circle(test_svg.objects[i])
+		elseif test_svg.object_types[i] == "r" then --rectangle
+			draw_rect(test_svg.objects[i])
+		elseif test_svg.object_types[i] == "e" then --ellipse
+			draw_ellipse(test_svg.objects[i])
 		end
 	end
-	for i = 1, #test_svg.circles do
-		love.graphics.circle("line", unpack(test_svg.circles[i]))
+end
+
+function set_style (style)
+	love.graphics.setColor(1, 1, 1, .2)
+end
+
+function draw_path (path)
+	for i = 1, #path do
+		love.graphics.line(path[i])
 	end
-	for i = 1, #test_svg.rects do
-		love.graphics.rectangle("line", unpack(test_svg.rects[i]))
-	end
+end
+
+function draw_circle (circle)
+	love.graphics.circle("line", unpack(circle))
+end
+
+function draw_rect (rect)
+	love.graphics.rectangle("line", unpack(rect))
+end
+
+function draw_ellipse (ellipse)
+	love.graphics.ellipse("line", unpack(ellipse))
 end
