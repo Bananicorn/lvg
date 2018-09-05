@@ -1,5 +1,3 @@
--- This is practically the init function, everything is being loaded here,
--- as the name implies
 require("renderer")
 function love.load ()
 	svg_parser = require("svg_parser")
@@ -11,7 +9,6 @@ function love.draw ()
 	render()
 end
 
---the main loop, dt stands for delta time in seconds
 function love.update (dt)
 	if love.keyboard.isDown("escape") then
 		love.event.quit()

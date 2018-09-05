@@ -1,6 +1,7 @@
 local svg_parser = {
 	scale_factor = 1,
 	decimal_precision = 2,
+	curve_detail = 5,
 	canvas = nil,
 	paths = {},
 	path_styles = {},
@@ -37,6 +38,19 @@ function svg_parser:join_paths (path_1, path_2)
 	return path_1
 end
 
+function svg_parser:remove_double_points (path)
+	for i = 1, #path - 2, 4 do
+		local x, y = path[i], path[i + 1]
+		local x2, y2 = path[i + 2], path[i +3]
+		if x and y and x2 and y2 then
+			if self:round(x) == self:round(x2) and self:round(y) == self:round(y2) then
+				table.remove(path, i)
+				table.remove(path, i)
+			end
+		end
+	end
+	return path
+end
 
 function svg_parser:reset()
 	self.scale_factor = 1
@@ -304,40 +318,19 @@ function svg_parser:parse_path_c (char)
 			self.path_vars.path_x2 = self.path_vars.path_x + self.path_vars.path_x2
 			self.path_vars.path_y2 = self.path_vars.path_y + self.path_vars.path_y2
 		end
-		if self.path_vars.path_y2 ~= self.path_vars.curr_poly[#self.path_vars.curr_poly] or self.path_vars.path_x2 ~= self.path_vars.curr_poly[#self.path_vars.curr_poly - 1] then
-			control_points[#control_points + 1] = self.path_vars.path_x2
-			control_points[#control_points + 1] = self.path_vars.path_y2
-		end
+		control_points[#control_points + 1] = self.path_vars.path_x2
+		control_points[#control_points + 1] = self.path_vars.path_y2
 		if #control_points == 6 then
-			-- curve = self:join_paths(curve, control_points)
-			curve = love.math.newBezierCurve(self.path_vars.path_x,self.path_vars.path_y,  unpack(control_points)):render(self.curve_detail)
+			curve = love.math.newBezierCurve(self.path_vars.path_x, self.path_vars.path_y, unpack(control_points)):render(self.curve_detail)
+			curve[#curve] = nil
+			curve[#curve] = nil
 			self.path_vars.curr_poly = self:join_paths(self.path_vars.curr_poly, curve)
-			if i + 1 < #self.path_vars.sub_coords then
-				self.path_vars.path_x = self.path_vars.path_x2
-				self.path_vars.path_y = self.path_vars.path_y2
-			end
+			self.path_vars.path_x = self.path_vars.path_x2
+			self.path_vars.path_y = self.path_vars.path_y2
 			control_points = {}
 		end
-	end
-	self.path_vars.curr_poly[#self.path_vars.curr_poly] = nil
-	self.path_vars.curr_poly[#self.path_vars.curr_poly] = nil
-	-- self.path_vars.path_x = self.path_vars.curr_poly[#self.path_vars.curr_poly - 1]
-	-- self.path_vars.path_y = self.path_vars.curr_poly[#self.path_vars.curr_poly]
-end
-
-function svg_parser:parse_path_q (char)
-	self.path_vars.sub_coords = self.path_vars.coords:gmatch("%-?%d+%.?%d*,%-?%d+%.?%d*")
-	for coord in self.path_vars.sub_coords do
-		self.path_vars.path_x2 = tonumber(self.split(coord, ",")[1]) * self.scale_factor
-		self.path_vars.path_y2 = tonumber(self.split(coord, ",")[2]) * self.scale_factor
-		if char == "q" then
-			self.path_vars.path_x2 = self.path_vars.path_x + self.path_vars.path_x2
-			self.path_vars.path_y2 = self.path_vars.path_y + self.path_vars.path_y2
-		end
-		self.path_vars.curr_poly[#self.path_vars.curr_poly + 1] = self.path_vars.path_x2
-		self.path_vars.curr_poly[#self.path_vars.curr_poly + 1] = self.path_vars.path_y2
-		self.path_vars.path_x = self.path_vars.path_x2
-		self.path_vars.path_y = self.path_vars.path_y2
+		self.path_vars.path_x = self.path_vars.curr_poly[#self.path_vars.curr_poly - 1]
+		self.path_vars.path_y = self.path_vars.curr_poly[#self.path_vars.curr_poly]
 	end
 end
 
@@ -345,6 +338,7 @@ function svg_parser:parse_path_z ()
 	local return_path = nil
 	self.path_vars.curr_poly[#self.path_vars.curr_poly + 1] = self.path_vars.first_x
 	self.path_vars.curr_poly[#self.path_vars.curr_poly + 1] = self.path_vars.first_y
+	self.path_vars.curr_poly = self:remove_double_points(self.path_vars.curr_poly)
 	return_path = self.path_vars.curr_poly
 	self.path_vars.curr_poly = {}
 	self.path_vars.path_x = self.path_vars.first_x
@@ -378,7 +372,6 @@ function svg_parser:parse_path (tag)
 				self:parse_path_c(char)
 			elseif char == "s" or char == "S" then
 			elseif char == "q" or char == "Q" then
-				parse_path_q(char) -- yeah sure, no way that'll work
 			elseif char == "a" or char == "A" then
 			elseif char == "T" or char == "t" then
 			elseif char == "z" or char == "Z" then
