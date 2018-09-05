@@ -5,7 +5,7 @@ end
 
 function draw_paths ()
 	-- love.graphics.setLineJoin("bevel")
-	love.graphics.setLineWidth(5)
+	love.graphics.setLineWidth(1)
 	love.graphics.setColor(1,1,1,.2)
 	for i = 1, #test_svg.paths do
 		for j = 1, #test_svg.paths[i] do

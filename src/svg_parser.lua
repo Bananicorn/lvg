@@ -26,7 +26,6 @@ function svg_parser:round(num)
   return math.floor(num * mult + 0.5) / mult
 end
 
-
 function svg_parser:join_paths (path_1, path_2)
 	if self:round(path_1[#path_1 - 1]) == self:round(path_2[1]) and self:round(path_1[#path_1]) == self:round(path_2[2]) then
 		table.remove(path_2, 1)
@@ -317,7 +316,7 @@ function svg_parser:parse_path_c (char)
 				self.path_vars.path_x = self.path_vars.path_x2
 				self.path_vars.path_y = self.path_vars.path_y2
 			end
-			control_points = {self.path_vars.path_x, self.path_vars.path_y}
+			control_points = {}
 		end
 	end
 	self.path_vars.curr_poly[#self.path_vars.curr_poly] = nil
