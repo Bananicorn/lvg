@@ -26,7 +26,7 @@ function Lvg_svg:draw_to_canvas ()
 	love.graphics.scale()
 	love.graphics.setBlendMode("alpha")
 	love.graphics.setCanvas(self.canvas)
-	self:direct_draw(-self.viewbox.x, -self.viewbox.y)
+	self:direct_draw(-self.viewbox.x * self.scale_factor, -self.viewbox.y * self.scale_factor)
 	love.graphics.pop()
 	love.graphics.setCanvas()
 end
@@ -42,9 +42,18 @@ function Lvg_svg:resize (scale_factor)
 	self:draw_to_canvas()
 end
 
-function Lvg_svg:direct_draw (x, y)
+function Lvg_svg:direct_draw (x, y, crop_to_viewbox)
+	local crop_to_viewbox = crop_to_viewbox or false
 	love.graphics.push()
-	love.graphics.translate(x, y)
+
+	if crop_to_viewbox then
+		local w = (self.viewbox.w - self.viewbox.x) * self.scale_factor
+		local h = (self.viewbox.h - self.viewbox.y) * self.scale_factor
+		love.graphics.setScissor(x, y, w, h)
+		love.graphics.translate(x - self.viewbox.x * self.scale_factor, y - self.viewbox.y * self.scale_factor)
+	else
+		love.graphics.translate(x, y)
+	end
 	love.graphics.scale(self.scale_factor)
 	for i = 1, #self.objects do
 		self:set_style(self.object_styles[i])
@@ -58,6 +67,13 @@ function Lvg_svg:direct_draw (x, y)
 			self:draw_ellipse(self.objects[i])
 		end
 	end
+	if crop_to_viewbox then
+		love.graphics.setScissor()
+	end
+	if use_stencil then
+		love.graphics.setStencilTest()
+	end
+
 	love.graphics.pop()
 end
 
