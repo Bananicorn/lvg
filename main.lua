@@ -3,6 +3,7 @@ function love.load ()
 	svg_parser = require("lvg.svg_parser") --you only need one of these
 	test_svg = svg_parser:load_svg("assets/test.svg")
 	bananicorn_svg = svg_parser:load_svg("assets/bananicorn.svg")
+	bananicorn_svg.scale_factor = 1.2
 end
 
 function love.draw ()

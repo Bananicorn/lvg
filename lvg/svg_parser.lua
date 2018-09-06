@@ -184,9 +184,9 @@ function svg_parser:get_styles (tag)
 end
 
 function svg_parser:parse_circle (tag)
-	local shape_x = tonumber(tag["@cx"]) * self.scale_factor
-	local shape_y = tonumber(tag["@cy"]) * self.scale_factor
-	local radius = tonumber(tag["@r"]) * self.scale_factor
+	local shape_x = tonumber(tag["@cx"])
+	local shape_y = tonumber(tag["@cy"])
+	local radius = tonumber(tag["@r"])
 
 	return {
 		shape_x,
@@ -196,10 +196,10 @@ function svg_parser:parse_circle (tag)
 end
 
 function svg_parser:parse_ellipse (tag)
-	local x = (tonumber(tag["@cx"]) * self.scale_factor)
-	local y = (tonumber(tag["@cy"]) * self.scale_factor)
-	local rx = tonumber(tag["@rx"]) * self.scale_factor
-	local ry = tonumber(tag["@ry"]) * self.scale_factor
+	local x = tonumber(tag["@cx"])
+	local y = tonumber(tag["@cy"])
+	local rx = tonumber(tag["@rx"])
+	local ry = tonumber(tag["@ry"])
 
 	return {
 		x,
@@ -210,10 +210,10 @@ function svg_parser:parse_ellipse (tag)
 end
 
 function svg_parser:parse_rect (tag)
-	local x = (tonumber(tag["@x"]) * self.scale_factor)
-	local y = (tonumber(tag["@y"]) * self.scale_factor)
-	local w = tonumber(tag["@width"]) * self.scale_factor
-	local h = tonumber(tag["@height"]) * self.scale_factor
+	local x = tonumber(tag["@x"])
+	local y = tonumber(tag["@y"])
+	local w = tonumber(tag["@width"])
+	local h = tonumber(tag["@height"])
 
 	return {
 		x,
@@ -227,19 +227,19 @@ function svg_parser:parse_path_m (path, char)
 	self.path_vars.path_x2 = self.path_next_number(self.path_vars.coords)
 	self.path_vars.coords = path:sub(path:find(self.path_vars.path_x2) + #tostring(self.path_vars.path_x2), self.next_svg_command(path))
 	if char == "m" and i > 1 then
-		self.path_vars.path_x = self.path_vars.path_x + (self.path_vars.path_x2 * self.scale_factor)
+		self.path_vars.path_x = self.path_vars.path_x + self.path_vars.path_x2
 		i = i + 1
 	else
-		self.path_vars.path_x = self.path_vars.path_x2 * self.scale_factor
+		self.path_vars.path_x = self.path_vars.path_x2
 	end
 
 	self.path_vars.path_y2 = self.path_next_number(self.path_vars.coords)
 	self.path_vars.coords = path:sub(path:find(self.path_vars.path_y2) + #tostring(self.path_vars.path_y2), self.next_svg_command(path))
 	if char == "m" then
-		self.path_vars.path_y = self.path_vars.path_y + (self.path_vars.path_y2 * self.scale_factor)
+		self.path_vars.path_y = self.path_vars.path_y + self.path_vars.path_y2
 		i = i + 1
 	else
-		self.path_vars.path_y = self.path_vars.path_y2 * self.scale_factor
+		self.path_vars.path_y = self.path_vars.path_y2
 	end
 
 	if self.path_vars.path_y ~= self.path_vars.curr_poly[#self.path_vars.curr_poly] or self.path_vars.path_x ~= self.path_vars.curr_poly[#self.path_vars.curr_poly - 1] then
@@ -253,8 +253,8 @@ function svg_parser:parse_path_m (path, char)
 	if self.path_next_number(self.path_vars.coords) then
 		self.path_vars.sub_coords = self.path_vars.coords:gmatch("%-?%d+%.?%d*,%-?%d+%.?%d*")
 		for coord in self.path_vars.sub_coords do
-			self.path_vars.path_x2 = tonumber(self.split(coord, ",")[1]) * self.scale_factor
-			self.path_vars.path_y2 = tonumber(self.split(coord, ",")[2]) * self.scale_factor
+			self.path_vars.path_x2 = tonumber(self.split(coord, ",")[1])
+			self.path_vars.path_y2 = tonumber(self.split(coord, ",")[2])
 			if char == "m" and i > 1 then
 				self.path_vars.path_x2 = self.path_vars.path_x + self.path_vars.path_x2
 				self.path_vars.path_y2 = self.path_vars.path_y + self.path_vars.path_y2
@@ -272,7 +272,7 @@ end
 function svg_parser:parse_path_v (char)
 	self.path_vars.sub_coords = self.path_vars.coords:gmatch("%-?%d+%.?%d*")
 	for coord in self.path_vars.sub_coords do
-		self.path_vars.path_y2 = tonumber(coord) * self.scale_factor
+		self.path_vars.path_y2 = tonumber(coord)
 		if char == "v" then
 			self.path_vars.path_y2 = self.path_vars.path_y + self.path_vars.path_y2
 		end
@@ -287,7 +287,7 @@ end
 function svg_parser:parse_path_h (char)
 	self.path_vars.sub_coords = self.path_vars.coords:gmatch("%-?%d+%.?%d*")
 	for coord in self.path_vars.sub_coords do
-		self.path_vars.path_x2 = tonumber(coord) * self.scale_factor
+		self.path_vars.path_x2 = tonumber(coord)
 		if char == "h" then
 			self.path_vars.path_x2 = self.path_vars.path_x + self.path_vars.path_x2
 		end
@@ -303,8 +303,8 @@ function svg_parser:parse_path_l (char)
 	self.path_vars.sub_coords = self.path_vars.coords:gmatch("%-?%d+%.?%d*,%-?%d+%.?%d*")
 
 	for coord in self.path_vars.sub_coords do
-		self.path_vars.path_x2 = tonumber(self.split(coord, ",")[1]) * self.scale_factor
-		self.path_vars.path_y2 = tonumber(self.split(coord, ",")[2]) * self.scale_factor
+		self.path_vars.path_x2 = tonumber(self.split(coord, ",")[1])
+		self.path_vars.path_y2 = tonumber(self.split(coord, ",")[2])
 		if char == "l" then
 			self.path_vars.path_x2 = self.path_vars.path_x + self.path_vars.path_x2
 			self.path_vars.path_y2 = self.path_vars.path_y + self.path_vars.path_y2
@@ -325,8 +325,8 @@ function svg_parser:parse_path_c (char)
 
 	--get the control points for the curve
 	for i = 1, #self.path_vars.sub_coords do
-		self.path_vars.path_x2 = tonumber(self.split(self.path_vars.sub_coords[i], ",")[1]) * self.scale_factor
-		self.path_vars.path_y2 = tonumber(self.split(self.path_vars.sub_coords[i], ",")[2]) * self.scale_factor
+		self.path_vars.path_x2 = tonumber(self.split(self.path_vars.sub_coords[i], ",")[1])
+		self.path_vars.path_y2 = tonumber(self.split(self.path_vars.sub_coords[i], ",")[2])
 
 		if char == "c" then
 			self.path_vars.path_x2 = self.path_vars.path_x + self.path_vars.path_x2

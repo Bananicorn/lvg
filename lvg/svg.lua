@@ -18,6 +18,7 @@ end
 function Lvg_svg:draw (x, y)
 	love.graphics.push()
 	love.graphics.translate(x, y)
+	love.graphics.scale(self.scale_factor)
 	for i = 1, #self.objects do
 		self:set_style(self.object_styles[i])
 		if self.object_types[i] == "p" then --path
