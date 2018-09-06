@@ -97,6 +97,17 @@ function Lvg_svg:set_style (style)
 end
 
 function Lvg_svg:draw_path (path)
+	if self.fill_color then
+		love.graphics.setColor(self.fill_color)
+		for i = 1, #path do
+			if love.math.isConvex(path[i]) then
+				local triangles = love.math.triangulate(path[i])
+				for j = 1, #triangles do
+					love.graphics.polygon("fill", triangles[j])
+				end
+			end
+		end
+	end
 	if self.stroke_color then
 		love.graphics.setColor(self.stroke_color)
 		for i = 1, #path do
