@@ -20,15 +20,13 @@ end
 function Lvg_svg:draw_to_canvas ()
 	local w = (self.viewbox.w - self.viewbox.x) * self.scale_factor
 	local h = (self.viewbox.h - self.viewbox.y) * self.scale_factor
-	local x = (self.viewbox.x - self.viewbox.w) * self.scale_factor
-	local y = (self.viewbox.y - self.viewbox.h) * self.scale_factor
 	self.canvas = love.graphics.newCanvas(w, h)
 
 	love.graphics.push()
 	love.graphics.scale()
 	love.graphics.setBlendMode("alpha")
 	love.graphics.setCanvas(self.canvas)
-	self:direct_draw(self.viewbox.x, self.viewbox.y)
+	self:direct_draw(-self.viewbox.x, -self.viewbox.y)
 	love.graphics.pop()
 	love.graphics.setCanvas()
 end
