@@ -119,12 +119,18 @@ function svg_parser:load_svg (file)
 	local content = file:read("*all")
 	local svg = require("lvg.xmlSimple").newParser():ParseXmlText(content)
 	local tag = svg:children()
+	local vx, vy, vw, vh = unpack(self.split(svg["svg"]["@viewBox"], " "))
+	vx = tonumber(vx)
+	vy = tonumber(vy)
+	vw = tonumber(vw)
+	vh = tonumber(vh)
 	self:traverse_tree(svg)
 	return_svg = Lvg_svg:create(
 		self.objects,
 		self.object_styles,
 		self.object_types,
-		self.scale_factor
+		self.scale_factor,
+		{x = vx, y = vy, w = vw, h = vh}
 	)
 	self:reset()
 	return return_svg

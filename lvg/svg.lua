@@ -1,9 +1,10 @@
 Lvg_svg = {}
 Lvg_svg.__index = Lvg_svg
 
-function Lvg_svg:create (objects, object_styles, object_types, scale_factor)
+function Lvg_svg:create (objects, object_styles, object_types, scale_factor, viewbox)
 	local svg = {
 		scale_factor = scale_factor,
+		viewbox = viewbox,
 		canvas = nil,
 		objects = objects,
 		object_styles = object_styles,
@@ -12,10 +13,33 @@ function Lvg_svg:create (objects, object_styles, object_types, scale_factor)
 		stroke_color = nil
 	}
 	setmetatable(svg, Lvg_svg)
+	svg:draw_to_canvas()
 	return svg
 end
 
+function Lvg_svg:draw_to_canvas ()
+	local w = (self.viewbox.w - self.viewbox.x) * self.scale_factor
+	local h = (self.viewbox.h - self.viewbox.y) * self.scale_factor
+	local x = (self.viewbox.x - self.viewbox.w) * self.scale_factor
+	local y = (self.viewbox.y - self.viewbox.h) * self.scale_factor
+	self.canvas = love.graphics.newCanvas(w, h)
+
+	love.graphics.push()
+	love.graphics.scale()
+	love.graphics.setBlendMode("alpha")
+	love.graphics.setCanvas(self.canvas)
+	self:direct_draw(self.viewbox.x, self.viewbox.y)
+	love.graphics.pop()
+	love.graphics.setCanvas()
+end
+
 function Lvg_svg:draw (x, y)
+	love.graphics.setBlendMode("alpha")
+	love.graphics.setColor(1, 1, 1, 1)
+	love.graphics.draw(self.canvas, x, y)
+end
+
+function Lvg_svg:direct_draw (x, y)
 	love.graphics.push()
 	love.graphics.translate(x, y)
 	love.graphics.scale(self.scale_factor)
@@ -32,6 +56,10 @@ function Lvg_svg:draw (x, y)
 		end
 	end
 	love.graphics.pop()
+end
+
+function Lvg_svg:rasterize (x, y)
+	
 end
 
 function Lvg_svg:set_style (style)
