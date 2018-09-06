@@ -6,8 +6,8 @@ function love.load ()
 end
 
 function love.draw ()
-	test_svg:draw(0,0)
-	bananicorn_svg:draw(150, 0)
+	test_svg:draw(0,20)
+	bananicorn_svg:draw(150, 20)
 end
 
 function love.update (dt)
