@@ -39,6 +39,11 @@ function Lvg_svg:draw (x, y)
 	love.graphics.draw(self.canvas, x, y)
 end
 
+function Lvg_svg:resize (scale_factor)
+	self.scale_factor = scale_factor
+	self:draw_to_canvas()
+end
+
 function Lvg_svg:direct_draw (x, y)
 	love.graphics.push()
 	love.graphics.translate(x, y)
