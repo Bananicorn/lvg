@@ -15,8 +15,12 @@ function Lvg_svg:create (objects, object_styles, object_types, scale_factor)
 	return svg
 end
 
-function Lvg_svg:draw ()
+function Lvg_svg:draw (x, y)
+	love.graphics.push()
+	love.graphics.translate(x, y)
 	for i = 1, #self.objects do
+		print(i)
+			print(self.object_types[i])
 		self:set_style(self.object_styles[i])
 		if self.object_types[i] == "p" then --path
 			self:draw_path(self.objects[i])
@@ -28,6 +32,7 @@ function Lvg_svg:draw ()
 			self:draw_ellipse(self.objects[i])
 		end
 	end
+	love.graphics.pop()
 end
 
 function Lvg_svg:set_style (style)
@@ -39,7 +44,7 @@ function Lvg_svg:set_style (style)
 		self.stroke_color = style.stroke
 	end
 	if style.fill then
-		self.fill_color = style.stroke
+		self.fill_color = style.fill
 	end
 end
 
