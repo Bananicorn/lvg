@@ -19,8 +19,6 @@ function Lvg_svg:draw (x, y)
 	love.graphics.push()
 	love.graphics.translate(x, y)
 	for i = 1, #self.objects do
-		print(i)
-			print(self.object_types[i])
 		self:set_style(self.object_styles[i])
 		if self.object_types[i] == "p" then --path
 			self:draw_path(self.objects[i])
