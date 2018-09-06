@@ -26,15 +26,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.35355339"
-     inkscape:cx="53.407935"
-     inkscape:cy="374.17772"
+     inkscape:cx="698.28932"
+     inkscape:cy="147.90355"
      inkscape:document-units="mm"
      inkscape:current-layer="svg8"
      showgrid="false"
      inkscape:window-width="1678"
-     inkscape:window-height="1031"
+     inkscape:window-height="1048"
      inkscape:window-x="0"
-     inkscape:window-y="18"
+     inkscape:window-y="0"
      inkscape:window-maximized="0"
      fit-margin-top="0"
      fit-margin-left="0"
@@ -63,8 +63,8 @@
      inkscape:connector-curvature="0"
      sodipodi:nodetypes="ccccccccccc" />
   <path
-     style="fill:none;stroke:#000000;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-     d="m 13.229167,38.317289 c 13.201274,-32.9741228 24.631282,-9.267727 36.512499,0 16.756945,26.386063 33.513889,8.192897 50.270834,0 29.36494,-31.6440899 35.28192,-3.602467 50.8,0 17.38194,33.691114 37.35092,46.316324 64.55833,0 23.79306,-62.805553 36.42197,-30.7159273 49.2125,0 17.28611,55.033291 32.45555,55.033376 45.50833,0"
+     style="fill:none;stroke:#ff0000;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     d="m 13.229167,38.846456 c 13.201274,-32.9741231 24.631282,-9.267727 36.512499,0 16.756945,26.386063 33.513889,8.192897 50.270834,0 29.36494,-31.6440902 35.28192,-3.602467 50.8,0 17.38194,33.691114 37.35092,46.316324 64.55833,0 23.79306,-62.805553 36.42197,-30.7159276 49.2125,0 17.28611,55.033291 32.45555,55.033376 45.50833,0"
      id="path814"
      inkscape:connector-curvature="0"
      sodipodi:nodetypes="ccccccc" />
@@ -112,4 +112,11 @@
      cx="71.842049"
      rx="23.573172"
      ry="9.3544331" />
+  <rect
+     style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     id="rect821"
+     width="77.828888"
+     height="77.828888"
+     x="341.24976"
+     y="46.037163" />
 </svg>

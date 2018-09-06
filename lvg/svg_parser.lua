@@ -102,10 +102,16 @@ function svg_parser.next_svg_command (str)
 end
 
 function svg_parser:is_valid_color (color_string)
-	if color_string ~= "none" and color_string ~= "" then
-		return true
+	local is_color = false
+	color_string = color_string:gsub("^%s*(.*)%s*$", "%1")
+	if color_string:find("#") and color_string:find("#") == 1 then
+		is_color = true
+	elseif color_string:find("rgb(") and color_string:find(")") then
+		is_color = true
+	elseif color_string == "none" or color_string == "" then
+		is_color = true
 	end
-	return false
+	return is_color
 end
 
 function svg_parser:load_svg (file)
@@ -148,17 +154,29 @@ function svg_parser:add_object (name, object, styles)
 	self.object_types[#self.object_types + 1] = name:sub(1,1):lower()
 end
 
+function svg_parser:parse_style_value (val_string)
+	local value = val_string
+	local unit = ""
+	if self:is_valid_color(val_string) then
+		value = self:parse_color(val_string)
+	elseif val_string:find("%d+.?%d*") then
+		value = val_string:match("%d+.?%d*")
+		value = tonumber(value)
+	else
+		value = {0, 0, 0, 0}
+	end
+	return value
+end
+
 function svg_parser:get_styles (tag)
 	if tag["@style"] then
 		local styles = {}
 		local style_string = tag["@style"]:gsub("-", "_")
 		local attributes = style_string:gmatch("[^;].-:.-[;$]")
 		for attr in attributes do
-			name = self.split(attr, ":")[1]:gsub("[;:]", "")
-			val = self.split(attr, ":")[2]:gsub("[;:]", "")
-			if val ~= "none" then
-				styles[name] = val
-			end
+			local name = self.split(attr, ":")[1]:gsub("[;:]", "")
+			local val = self:parse_style_value(self.split(attr, ":")[2]:gsub("[;:]", ""))
+			styles[name] = val
 		end
 		return styles
 	end
@@ -339,7 +357,9 @@ function svg_parser:parse_path_z ()
 	self.path_vars.curr_poly = {}
 	self.path_vars.path_x = self.path_vars.first_x
 	self.path_vars.path_y = self.path_vars.first_y
-	return return_path
+	if #return_path > 3 then
+		return return_path
+	end
 end
 
 function svg_parser:parse_path (tag)
@@ -382,19 +402,21 @@ function svg_parser:parse_path (tag)
 	return return_paths
 end
 
-function rgb_to_color (rgb_string)
-	if rgb_string then
-		rgb = rgb_string:gmatch("(%d-)[,)]")
+function svg_parser.rgb_to_color (rgb_string)
+	if rgb_string and rgb_string:find("rgb%(") then
+		rgb = rgb_string:gmatch("rgb%((%d-)[,)%)]")
+		print(rgb_string)
 		local color = {}
 		for val in rgb do
 			color[#color + 1] = tonumber(val) / 255
 		end
+		print(unpack(color))
 		return color
 	end
-	return {0, 0, 0}
+	return {0, 0, 0, 0}
 end
 
-function hex_to_color (hex_string)
+function svg_parser.hex_to_color (hex_string)
 	if hex_string then
 		hex_string = hex_string:gsub("#", "")
 		local color = {}
@@ -405,16 +427,19 @@ function hex_to_color (hex_string)
 		end
 		return color
 	end
-	return {0, 0, 0}
+	return {0, 0, 0, 0}
 end
 
-function parse_color (color_string)
-	if color_string:find("#") then
-		color = hex_to_color(color_string)
+function svg_parser:parse_color (color_string)
+	local color = {0, 0, 0, 0}
+	if color_string == "none" then
+		color = nil
+	elseif color_string:find("#") then
+		color = self.hex_to_color(color_string)
 	else
-		color = rgb_to_color(color_string)
+		color = self.rgb_to_color(color_string)
 	end
-	if #color < 4 then
+	if color and #color < 4 then
 		color[#color + 1] = 1
 	end
 	return color
