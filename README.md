@@ -7,17 +7,17 @@ Want to use simple SVGs with *curves* in your Löve game?
 ## Code example:
 
 ```lua
-	function love.load ()
-		love.graphics.setBackgroundColor(1,1,1,1)
-		svg_parser = require("lvg.svg_parser") --you only need one of these
-		test_svg = svg_parser:load_svg("assets/test.svg")
-		bananicorn_svg = svg_parser:load_svg("assets/bananicorn.svg")
-	end
+function love.load ()
+	love.graphics.setBackgroundColor(1,1,1,1)
+	svg_parser = require("lvg.svg_parser") --you only need one of these
+	test_svg = svg_parser:load_svg("assets/test.svg")
+	bananicorn_svg = svg_parser:load_svg("assets/bananicorn.svg")
+end
 
-	function love.draw ()
-		test_svg:draw(0,20)
-		bananicorn_svg:draw(150, 20)
-	end
+function love.draw ()
+	test_svg:draw(0,20)
+	bananicorn_svg:draw(150, 20)
+end
 ```
 
 At this point in time this is *not* a feature-complete SVG renderer.
