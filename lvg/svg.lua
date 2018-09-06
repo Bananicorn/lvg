@@ -1,7 +1,7 @@
 Lvg_svg = {}
 Lvg_svg.__index = Lvg_svg
 
-function Lvg_svg:create (objects, object_styles, object_types, scale_factor, viewbox)
+function Lvg_svg:create (objects, object_styles, object_types, scale_factor, viewbox, initialize_canvas)
 	local svg = {
 		scale_factor = scale_factor,
 		viewbox = viewbox,
@@ -13,7 +13,9 @@ function Lvg_svg:create (objects, object_styles, object_types, scale_factor, vie
 		stroke_color = nil
 	}
 	setmetatable(svg, Lvg_svg)
-	svg:draw_to_canvas()
+	if initialize_canvas then
+		svg:draw_to_canvas()
+	end
 	return svg
 end
 

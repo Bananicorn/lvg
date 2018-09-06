@@ -3,7 +3,7 @@ local svg_parser = {
 	scale_factor = 1,
 	decimal_precision = 2,
 	curve_detail = 5,
-	canvas = nil,
+	initialize_canvases = true,
 	objects = {},
 	object_styles = {},
 	object_types = {},
@@ -130,7 +130,8 @@ function svg_parser:load_svg (file)
 		self.object_styles,
 		self.object_types,
 		self.scale_factor,
-		{x = vx, y = vy, w = vw, h = vh}
+		{x = vx, y = vy, w = vw, h = vh},
+		self.initialize_canvases
 	)
 	self:reset()
 	return return_svg

@@ -9,8 +9,6 @@ end
 function love.draw ()
 	local new_scale_factor = love.graphics.getHeight() / initial_window_height
 	shapes_svg:draw(0, 20 * new_scale_factor)
-	-- shapes_svg:direct_draw(0, 20 * new_scale_factor, true)
-	bananicorn_svg:direct_draw(150 * new_scale_factor, 20 * new_scale_factor, true)
 	bananicorn_svg:draw(150 * new_scale_factor, 20 * new_scale_factor)
 end
 
