@@ -24,12 +24,12 @@ At this point in time this is *not* a feature-complete SVG renderer.
 Not by a long shot - but I've only just begun.
 
 ## Currently supported:
-###Shapes
+### Shapes
 - Rectangles (fill & stroke)
 - Circles (fill & stroke)
 - Ellipses (fill and stroke)
 - Paths (stroke only)
 
-###Styles (*only inline*)
+### Styles (*only inline*)
 - basic fill and stroke color
 - stroke width
