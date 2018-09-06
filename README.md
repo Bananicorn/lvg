@@ -30,6 +30,6 @@ Not by a long shot - but I've only just begun.
 - Ellipses (fill and stroke)
 - Paths (stroke only)
 
-###Styles
+###Styles (*only inline*)
 - basic fill and stroke color
 - stroke width
