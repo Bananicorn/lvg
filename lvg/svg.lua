@@ -27,7 +27,7 @@ function Lvg_svg:draw_to_canvas ()
 	love.graphics.push()
 	love.graphics.scale()
 	love.graphics.setBlendMode("alpha")
-	love.graphics.setCanvas(self.canvas)
+	love.graphics.setCanvas({self.canvas, stencil=true})
 	self:direct_draw(-self.viewbox.x * self.scale_factor, -self.viewbox.y * self.scale_factor)
 	love.graphics.pop()
 	love.graphics.setCanvas()
@@ -72,9 +72,6 @@ function Lvg_svg:direct_draw (x, y, crop_to_viewbox)
 	if crop_to_viewbox then
 		love.graphics.setScissor()
 	end
-	if use_stencil then
-		love.graphics.setStencilTest()
-	end
 
 	love.graphics.pop()
 end
@@ -100,12 +97,13 @@ function Lvg_svg:draw_path (path)
 	if self.fill_color then
 		love.graphics.setColor(self.fill_color)
 		for i = 1, #path do
-			if love.math.isConvex(path[i]) then
-				local triangles = love.math.triangulate(path[i])
-				for j = 1, #triangles do
-					love.graphics.polygon("fill", triangles[j])
-				end
+			local function even_odd_stencil ()
+				love.graphics.polygon("fill", path[i])
 			end
+			love.graphics.stencil(even_odd_stencil, "invert", 1)
+			love.graphics.setStencilTest("greater", 1)
+			love.graphics.polygon("fill", path[i])
+			love.graphics.setStencilTest()
 		end
 	end
 	if self.stroke_color then

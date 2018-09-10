@@ -31,6 +31,8 @@ function love.resize ()
 	shapes_svg:resize(new_scale_factor)
 end
 ```
+## Note:
+currently, every path is drawn with the even-odd fill rule, but I'm working on implementing nonzero-winding as well
 
 At this point in time this is *not* a feature-complete SVG renderer.
 Not by a long shot - but I've only just begun.
@@ -40,7 +42,7 @@ Not by a long shot - but I've only just begun.
 - Rectangles (fill & stroke)
 - Circles (fill & stroke)
 - Ellipses (fill and stroke)
-- Paths (stroke only)
+- Paths (stroke and even-odd fill-rule)
 
 ### Styles (*only inline*)
 - basic fill and stroke color
