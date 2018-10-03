@@ -76,10 +76,6 @@ function Lvg_svg:direct_draw (x, y, crop_to_viewbox)
 	love.graphics.pop()
 end
 
-function Lvg_svg:rasterize (x, y)
-	
-end
-
 function Lvg_svg:set_style (style)
 	love.graphics.setLineWidth(style.stroke_width or 1)
 
@@ -97,11 +93,16 @@ function Lvg_svg:draw_path (path)
 	if self.fill_color then
 		love.graphics.setColor(self.fill_color)
 		for i = 1, #path do
-			local function even_odd_stencil ()
+			local function poly_stencil ()
 				love.graphics.polygon("fill", path[i])
 			end
-			love.graphics.stencil(even_odd_stencil, "invert", 1)
-			love.graphics.setStencilTest("greater", 1)
+			if 1 then
+				love.graphics.stencil(poly_stencil, "replace", 4)
+				love.graphics.setStencilTest("greater", 3)
+			else
+				love.graphics.stencil(poly_stencil, "invert", 1)
+				love.graphics.setStencilTest("greater", 0)
+			end
 			love.graphics.polygon("fill", path[i])
 			love.graphics.setStencilTest()
 		end
