@@ -51,7 +51,7 @@ function svg_parser:remove_double_points (path)
 end
 
 function svg_parser:reset ()
-	self.scale_factor = 1
+	-- self.scale_factor = 1
 	self.canvas = nil
 	self.objects = {}
 	self.object_styles = {}
@@ -99,6 +99,15 @@ end
 --just returns the INDEX of the next svg command (a single letter) in the string
 function svg_parser.next_svg_command (str)
 	return str:find("[MmLlVvHhZzAaSsCcQqTt]")
+end
+
+function svg_parser:is_value_list (attr)
+	local num = "%d+%.?%d*"
+	return attr:find(num .. "%s*,%s*" .. num)
+end
+
+function svg_parser:is_number (attr)
+	return type(tonumber(attr)) == "number"
 end
 
 function svg_parser:is_valid_color (color_string)
@@ -163,8 +172,13 @@ end
 
 function svg_parser:parse_style_value (val_string)
 	local value = val_string
-	local unit = ""
-	if self:is_valid_color(val_string) then
+	if value == "none" or value == "" then
+		value = nil
+	elseif self:is_value_list(value) then
+		value = self.split(value, ",")
+	elseif self:is_number(val_string) then
+		value = tonumber(val_string)
+	elseif self:is_valid_color(val_string) then
 		value = self:parse_color(val_string)
 	elseif val_string:find("%d+.?%d*") then
 		value = val_string:match("%d+.?%d*")
@@ -178,10 +192,10 @@ end
 function svg_parser:get_styles (tag)
 	if tag["@style"] then
 		local styles = {}
-		local style_string = tag["@style"]:gsub("-", "_")
+		local style_string = tag["@style"]
 		local attributes = style_string:gmatch("[^;].-:.-[;$]")
 		for attr in attributes do
-			local name = self.split(attr, ":")[1]:gsub("[;:]", "")
+			local name = self.split(attr, ":")[1]:gsub("[;:]", ""):gsub("-", "_")
 			local val = self:parse_style_value(self.split(attr, ":")[2]:gsub("[;:]", ""))
 			styles[name] = val
 		end
@@ -343,8 +357,9 @@ function svg_parser:parse_path_c (char)
 		control_points[#control_points + 1] = self.path_vars.path_y2
 		if #control_points == 6 then
 			curve = love.math.newBezierCurve(self.path_vars.path_x, self.path_vars.path_y, unpack(control_points)):render(self.curve_detail)
-			curve[#curve] = nil
-			curve[#curve] = nil
+			-- oh wtf am I doing
+			-- curve[#curve] = nil
+			-- curve[#curve] = nil
 			self.path_vars.curr_poly = self:join_paths(self.path_vars.curr_poly, curve)
 			self.path_vars.path_x = self.path_vars.path_x2
 			self.path_vars.path_y = self.path_vars.path_y2
@@ -412,12 +427,10 @@ end
 function svg_parser.rgb_to_color (rgb_string)
 	if rgb_string and rgb_string:find("rgb%(") then
 		rgb = rgb_string:gmatch("rgb%((%d-)[,)%)]")
-		print(rgb_string)
 		local color = {}
 		for val in rgb do
 			color[#color + 1] = tonumber(val) / 255
 		end
-		print(unpack(color))
 		return color
 	end
 	return {0, 0, 0, 0}
@@ -439,9 +452,7 @@ end
 
 function svg_parser:parse_color (color_string)
 	local color = {0, 0, 0, 0}
-	if color_string == "none" then
-		color = nil
-	elseif color_string:find("#") then
+	if color_string:find("#") then
 		color = self.hex_to_color(color_string)
 	else
 		color = self.rgb_to_color(color_string)

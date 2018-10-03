@@ -6,9 +6,10 @@ function Lvg_svg:create (objects, object_styles, object_types, scale_factor, vie
 		scale_factor = scale_factor,
 		viewbox = viewbox,
 		canvas = nil,
+		quad = love.graphics.newQuad(0, 0, viewbox.w, viewbox.h, viewbox.w, viewbox.h),
 		objects = objects,
-		object_styles = object_styles,
-		object_types = object_types,
+		styles = object_styles,
+		types = object_types,
 		fill_color = nil,
 		stroke_color = nil
 	}
@@ -22,12 +23,14 @@ end
 function Lvg_svg:draw_to_canvas ()
 	local w = (self.viewbox.w - self.viewbox.x) * self.scale_factor
 	local h = (self.viewbox.h - self.viewbox.y) * self.scale_factor
-	self.canvas = love.graphics.newCanvas(w, h)
+	if self.canvas then
+		self.canvas:release()
+	end
+	self.canvas = love.graphics.newCanvas(w, h, {msaa = 4})
 
 	love.graphics.push()
-	love.graphics.scale()
 	love.graphics.setBlendMode("alpha")
-	love.graphics.setCanvas({self.canvas, stencil=true})
+	love.graphics.setCanvas({self.canvas, stencil=true, msaa=4})
 	self:direct_draw(-self.viewbox.x * self.scale_factor, -self.viewbox.y * self.scale_factor)
 	love.graphics.pop()
 	love.graphics.setCanvas()
@@ -36,7 +39,7 @@ end
 function Lvg_svg:draw (x, y)
 	love.graphics.setBlendMode("alpha")
 	love.graphics.setColor(1, 1, 1, 1)
-	love.graphics.draw(self.canvas, x, y)
+	love.graphics.draw(self.canvas, self.quad, x, y, 0, self.scale_factor, self.scale_factor)
 end
 
 function Lvg_svg:resize (scale_factor)
@@ -58,14 +61,14 @@ function Lvg_svg:direct_draw (x, y, crop_to_viewbox)
 	end
 	love.graphics.scale(self.scale_factor)
 	for i = 1, #self.objects do
-		self:set_style(self.object_styles[i])
-		if self.object_types[i] == "p" then --path
+		self:set_style(self.styles[i])
+		if self.types[i] == "p" then --path
 			self:draw_path(self.objects[i])
-		elseif self.object_types[i] == "c" then --circle
+		elseif self.types[i] == "c" then --circle
 			self:draw_circle(self.objects[i])
-		elseif self.object_types[i] == "r" then --rectangle
+		elseif self.types[i] == "r" then --rectangle
 			self:draw_rect(self.objects[i])
-		elseif self.object_types[i] == "e" then --ellipse
+		elseif self.types[i] == "e" then --ellipse
 			self:draw_ellipse(self.objects[i])
 		end
 	end
@@ -91,20 +94,29 @@ end
 
 function Lvg_svg:draw_path (path)
 	if self.fill_color then
-		love.graphics.setColor(self.fill_color)
-		for i = 1, #path do
-			local function poly_stencil ()
-				love.graphics.polygon("fill", path[i])
+		if self.fill_color[4] > 0 then
+			love.graphics.setColor(self.fill_color)
+			for i = 1, #path do
+				if love.math.isConvex(path[i]) then
+					local triangles = love.math.triangulate(path[i])
+					for j = 1, #triangles do
+						love.graphics.polygon("fill", triangles[j])
+					end
+				else
+					local function poly_stencil ()
+						love.graphics.polygon("fill", path[i])
+					end
+					if 1 then
+						love.graphics.stencil(poly_stencil, "replace", 4)
+						love.graphics.setStencilTest("greater", 3)
+					else
+						love.graphics.stencil(poly_stencil, "invert", 1)
+						love.graphics.setStencilTest("greater", 0)
+					end
+					love.graphics.polygon("fill", path[i])
+					love.graphics.setStencilTest()
+				end
 			end
-			if 1 then
-				love.graphics.stencil(poly_stencil, "replace", 4)
-				love.graphics.setStencilTest("greater", 3)
-			else
-				love.graphics.stencil(poly_stencil, "invert", 1)
-				love.graphics.setStencilTest("greater", 0)
-			end
-			love.graphics.polygon("fill", path[i])
-			love.graphics.setStencilTest()
 		end
 	end
 	if self.stroke_color then
