@@ -1,7 +1,7 @@
 Lvg_svg = {}
 Lvg_svg.__index = Lvg_svg
 
-function Lvg_svg:create (objects, object_styles, object_types, scale_factor, viewbox, initialize_canvas)
+function Lvg_svg:create (objects, object_styles, infos, scale_factor, viewbox, initialize_canvas)
 	local svg = {
 		scale_factor = scale_factor,
 		viewbox = viewbox,
@@ -9,7 +9,7 @@ function Lvg_svg:create (objects, object_styles, object_types, scale_factor, vie
 		quad = love.graphics.newQuad(0, 0, viewbox.w, viewbox.h, viewbox.w, viewbox.h),
 		objects = objects,
 		styles = object_styles,
-		types = object_types,
+		infos = infos,
 		fill_color = nil,
 		stroke_color = nil
 	}
@@ -62,13 +62,13 @@ function Lvg_svg:direct_draw (x, y, crop_to_viewbox)
 	love.graphics.scale(self.scale_factor)
 	for i = 1, #self.objects do
 		self:set_style(self.styles[i])
-		if self.types[i] == "p" then --path
+		if self.infos[i].type == "p" then --path
 			self:draw_path(self.objects[i])
-		elseif self.types[i] == "c" then --circle
+		elseif self.infos[i].type == "c" then --circle
 			self:draw_circle(self.objects[i])
-		elseif self.types[i] == "r" then --rectangle
+		elseif self.infos[i].type == "r" then --rectangle
 			self:draw_rect(self.objects[i])
-		elseif self.types[i] == "e" then --ellipse
+		elseif self.infos[i].type == "e" then --ellipse
 			self:draw_ellipse(self.objects[i])
 		end
 	end

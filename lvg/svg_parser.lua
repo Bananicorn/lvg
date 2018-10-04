@@ -6,7 +6,7 @@ local svg_parser = {
 	initialize_canvases = true,
 	objects = {},
 	object_styles = {},
-	object_types = {},
+	infos = {},
 	path_vars = {
 		coords = "",
 		sub_coords = {},
@@ -55,7 +55,7 @@ function svg_parser:reset ()
 	self.canvas = nil
 	self.objects = {}
 	self.object_styles = {}
-	self.object_types = {}
+	self.infos = {}
 end
 
 function svg_parser:reset_path_vars ()
@@ -137,13 +137,34 @@ function svg_parser:load_svg (file)
 	return_svg = Lvg_svg:create(
 		self.objects,
 		self.object_styles,
-		self.object_types,
+		self.infos,
 		self.scale_factor,
 		{x = vx, y = vy, w = vw, h = vh},
 		self.initialize_canvases
 	)
 	self:reset()
 	return return_svg
+end
+
+function svg_parser:get_infos(tag)
+	--type is the most important attribute in here
+	local type = tag:name():sub(1,1):lower()
+	--we search for title and desc attributes
+	if tag:children() then
+		local title = nil
+		local desc = nil
+		if tag["title"] then
+			title = tag["title"]:value()
+		end
+		if tag["desc"] then
+			desc = tag["desc"]:value()
+		end
+	end
+	return {
+		type = type,
+		title = title,
+		desc = desc
+	}
 end
 
 function svg_parser:traverse_tree (parent_tag)
@@ -153,8 +174,9 @@ function svg_parser:traverse_tree (parent_tag)
 			if tags[i]:children() then
 				if self["parse_" .. tags[i]:name()] ~= nil then
 					local object = self["parse_" .. tags[i]:name()](self, tags[i])
+					local infos = self:get_infos(tags[i])
 					local styles = self:get_styles(tags[i])
-					self:add_object(tags[i]:name(), object, styles)
+					self:add_object(tags[i]:name(), object, styles, infos)
 				else
 					self:traverse_tree(tags[i], self.scale_factor)
 				end
@@ -164,10 +186,10 @@ function svg_parser:traverse_tree (parent_tag)
 	return nil
 end
 
-function svg_parser:add_object (name, object, styles)
+function svg_parser:add_object (name, object, styles, infos)
 	self.objects[#self.objects + 1] = object
 	self.object_styles[#self.object_styles + 1] = styles
-	self.object_types[#self.object_types + 1] = name:sub(1,1):lower()
+	self.infos[#self.infos + 1] = infos
 end
 
 function svg_parser:parse_style_value (val_string)
