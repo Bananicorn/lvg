@@ -92,12 +92,42 @@ function Lvg_svg:set_style (style)
 	end
 end
 
+function Lvg_svg:reverse_path_winding (path)
+	for i = 1, #path / 2 do
+		local a, b
+		a = path[i]
+		b = path[#path - (i - 1)]
+		path[i] = b
+		path[#path - (i - 1)] = a
+	end
+	return path
+end
+
+function Lvg_svg:is_path_ccw (path)
+	--if the polygon isn't closed, then we close it for this, because for the fill will HAVE TO close it
+	--doesn't work yet if I don't find out where the path actually breaks
+	-- if path[1] ~= path[#path - 1] or path[2] ~= path[#path] then
+		-- path[#path + 1] = path[1]
+		-- path[#path + 1] = path[2]
+	-- end
+	local result = 0
+	for i = 1, #path - 3, 2 do
+		local current_edge = (path[i + 2] - path[i]) * (path[i + 3] + path[i + 1])
+		result = current_edge + result
+	end
+	return result < 0
+end
+
 function Lvg_svg:draw_path (path)
 	if self.fill_color then
 		if self.fill_color[4] > 0 then
 			love.graphics.setColor(self.fill_color)
 			for i = 1, #path do
 				if love.math.isConvex(path[i]) then
+					if self:is_path_ccw(path[i]) then
+						path[i] = self:reverse_path_winding(path[i])
+					end
+					
 					local triangles = love.math.triangulate(path[i])
 					for j = 1, #triangles do
 						love.graphics.polygon("fill", triangles[j])

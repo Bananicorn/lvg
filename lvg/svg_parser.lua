@@ -150,9 +150,9 @@ function svg_parser:get_infos(tag)
 	--type is the most important attribute in here
 	local type = tag:name():sub(1,1):lower()
 	--we search for title and desc attributes
+	local title = nil
+	local desc = nil
 	if tag:children() then
-		local title = nil
-		local desc = nil
 		if tag["title"] then
 			title = tag["title"]:value()
 		end
