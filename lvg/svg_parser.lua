@@ -160,9 +160,13 @@ function svg_parser:get_infos(tag)
 			desc = tag["desc"]:value()
 		end
 	end
+	if tag["@transform"] then
+		transform = tag["@transform"]
+	end
 	return {
 		type = type,
 		title = title,
+		transform = transform,
 		desc = desc
 	}
 end
@@ -421,6 +425,10 @@ function svg_parser:parse_path (tag)
 			self.path_vars.coords = path:sub(0, self.next_svg_command(path))
 			self.path_vars.coords = self.path_vars.coords:gsub("% *[MmLlVvHhZz]", "")
 			if char == "M" or char == "m" then
+				if #self.path_vars.curr_poly > 4 then
+					return_paths[#return_paths + 1] = self.path_vars.curr_poly
+					self.path_vars.curr_poly = {}
+				end
 				self:parse_path_m(path, char)
 			elseif char == "v" or char == "V" then
 				self:parse_path_v(char)
@@ -433,7 +441,7 @@ function svg_parser:parse_path (tag)
 			elseif char == "s" or char == "S" then
 			elseif char == "q" or char == "Q" then
 			elseif char == "a" or char == "A" then
-			elseif char == "T" or char == "t" then
+			elseif char == "t" or char == "T" then
 			elseif char == "z" or char == "Z" then
 				return_paths[#return_paths + 1] = self:parse_path_z()
 			end

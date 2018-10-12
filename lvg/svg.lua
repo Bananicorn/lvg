@@ -93,8 +93,6 @@ function Lvg_svg:set_style (style)
 end
 
 function Lvg_svg:reverse_path_winding (path)
-	print("----")
-
 	local x, x2, y, y2
 	for i = 1, #path / 2, 2 do
 		x = path[i]
@@ -137,10 +135,7 @@ function Lvg_svg:draw_path (path)
 						path_copy[j] = path[i][j]
 					end
 					if self:is_path_ccw(path[i]) then
-						print("yes")
 						path_copy = self:reverse_path_winding(path_copy)
-					else
-						print("no")
 					end
 					
 					local triangles = love.math.triangulate(path[i])
