@@ -93,13 +93,21 @@ function Lvg_svg:set_style (style)
 end
 
 function Lvg_svg:reverse_path_winding (path)
-	for i = 1, #path / 2 do
-		local a, b
-		a = path[i]
-		b = path[#path - (i - 1)]
-		path[i] = b
-		path[#path - (i - 1)] = a
+	print("----")
+
+	local x, x2, y, y2
+	for i = 1, #path / 2, 2 do
+		x = path[i]
+		x2 = path[#path - (i - 1) - 1]
+		y = path[i + 1]
+		y2 = path[#path - (i  - 1)]
+
+		path[i] = x2
+		path[#path - (i - 1) - 1] = x
+		path[i + 1] = y2
+		path[#path - (i  - 1)] = y
 	end
+
 	return path
 end
 
@@ -124,8 +132,15 @@ function Lvg_svg:draw_path (path)
 			love.graphics.setColor(self.fill_color)
 			for i = 1, #path do
 				if love.math.isConvex(path[i]) then
+					local path_copy = {}
+					for j = 1, #path[i] do
+						path_copy[j] = path[i][j]
+					end
 					if self:is_path_ccw(path[i]) then
-						path[i] = self:reverse_path_winding(path[i])
+						print("yes")
+						path_copy = self:reverse_path_winding(path_copy)
+					else
+						print("no")
 					end
 					
 					local triangles = love.math.triangulate(path[i])
