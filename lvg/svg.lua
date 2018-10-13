@@ -50,13 +50,14 @@ function Lvg_svg:do_lines_intersect (x1, y1, x2, y2, x3, y3, x4, y4)
 	local r = numerator1 / denominator
 	local s = numerator2 / denominator
 
-	return (r >= 0 and r <= 1) and (s >= 0 and s <= 1)
+	-- return (r >= 0 and r <= 1) and (s >= 0 and s <= 1)
+	return (s >= 0 and s <= 1)
 end
 
 function Lvg_svg:does_path_self_intersect (path)
 	for i = 1, #path - 4, 2 do
 		for j = 1, #path - 4, 2 do
-			if (i < j - 1 or i > j + 1) and self:do_lines_intersect(path[i], path[i + 1], path[i + 2], path[i + 3], path[i + 4],  path[j], path[j + 1], path[j + 2], path[j + 3], path[j + 4]) then
+			if i ~= j and self:do_lines_intersect(path[i], path[i + 1], path[i + 2], path[i + 3], path[i + 4],  path[j], path[j + 1], path[j + 2], path[j + 3], path[j + 4]) then
 				return true
 			end
 		end
