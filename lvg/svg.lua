@@ -36,6 +36,34 @@ function Lvg_svg:draw_to_canvas ()
 	love.graphics.setCanvas()
 end
 
+function Lvg_svg:do_lines_intersect (x1, y1, x2, y2, x3, y3, x4, y4)
+	local denominator = ((x2 - x1) * (y4 - y3)) - ((y2 - y1) * (x4 - x3))
+	local numerator1 = ((y1 - y3) * (x4 - x3)) - ((x1 - x3) * (y4 - y3))
+	local numerator2 = ((y1 - y3) * (x2 - x1)) - ((x1 - x3) * (y2 - y1))
+
+	-- Detect coincident lines (has a problem, read below)
+	-- https://gamedev.stackexchange.com/questions/26004/how-to-detect-2d-line-on-line-collision
+	if (denominator == 0) then
+		return numerator1 == 0 and numerator2 == 0
+	end
+
+	local r = numerator1 / denominator
+	local s = numerator2 / denominator
+
+	return (r >= 0 and r <= 1) and (s >= 0 and s <= 1)
+end
+
+function Lvg_svg:does_path_self_intersect (path)
+	for i = 1, #path - 4, 2 do
+		for j = 1, #path - 4, 2 do
+			if (i < j - 1 or i > j + 1) and self:do_lines_intersect(path[i], path[i + 1], path[i + 2], path[i + 3], path[i + 4],  path[j], path[j + 1], path[j + 2], path[j + 3], path[j + 4]) then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 function Lvg_svg:draw (x, y)
 	love.graphics.setBlendMode("alpha")
 	love.graphics.setColor(1, 1, 1, 1)
@@ -121,7 +149,7 @@ function Lvg_svg:is_path_ccw (path)
 		local current_edge = (path[i + 2] - path[i]) * (path[i + 3] + path[i + 1])
 		result = current_edge + result
 	end
-	return result < 0
+	return result > 0
 end
 
 function Lvg_svg:draw_path (path)
@@ -129,32 +157,29 @@ function Lvg_svg:draw_path (path)
 		if self.fill_color[4] > 0 then
 			love.graphics.setColor(self.fill_color)
 			for i = 1, #path do
-				if love.math.isConvex(path[i]) then
-					local path_copy = {}
+				local path_copy = {}
+				if self:is_path_ccw(path[i]) then
 					for j = 1, #path[i] do
 						path_copy[j] = path[i][j]
 					end
-					if self:is_path_ccw(path[i]) then
-						path_copy = self:reverse_path_winding(path_copy)
+					path_copy = self:reverse_path_winding(path_copy)
+				else
+					path_copy = path[i]
+				end
+
+				if self:does_path_self_intersect(path_copy) then
+					local function poly_stencil ()
+						love.graphics.polygon("fill", path_copy)
 					end
-					
-					local triangles = love.math.triangulate(path[i])
+					love.graphics.stencil(poly_stencil, "invert", 1)
+					love.graphics.setStencilTest("greater", 0)
+					love.graphics.polygon("fill", path_copy)
+					love.graphics.setStencilTest()
+				else
+					local triangles = love.math.triangulate(path_copy)
 					for j = 1, #triangles do
 						love.graphics.polygon("fill", triangles[j])
 					end
-				else
-					local function poly_stencil ()
-						love.graphics.polygon("fill", path[i])
-					end
-					if 1 then
-						love.graphics.stencil(poly_stencil, "replace", 4)
-						love.graphics.setStencilTest("greater", 3)
-					else
-						love.graphics.stencil(poly_stencil, "invert", 1)
-						love.graphics.setStencilTest("greater", 0)
-					end
-					love.graphics.polygon("fill", path[i])
-					love.graphics.setStencilTest()
 				end
 			end
 		end
