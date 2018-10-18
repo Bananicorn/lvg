@@ -191,6 +191,7 @@ function svg_parser:traverse_tree (parent_tag)
 end
 
 function svg_parser:add_object (name, object, styles, infos)
+	--apply transform here
 	self.objects[#self.objects + 1] = object
 	self.object_styles[#self.object_styles + 1] = styles
 	self.infos[#self.infos + 1] = infos
@@ -453,6 +454,15 @@ function svg_parser:parse_path (tag)
 	end
 	return return_paths
 end
+
+function svg_parser:apply_transforms (paths, transforms)
+	for i = 0, #paths do
+		for j = 1, #paths[i] do
+			
+		end
+	end
+end
+
 
 function svg_parser.rgb_to_color (rgb_string)
 	if rgb_string and rgb_string:find("rgb%(") then

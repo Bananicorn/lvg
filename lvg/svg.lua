@@ -11,6 +11,7 @@ function Lvg_svg:create (objects, object_styles, infos, scale_factor, viewbox, i
 		styles = object_styles,
 		infos = infos,
 		fill_color = nil,
+		tint_color = {1, 1, 1, 1}, --ONLY applies to drawing the canvas, NOT direct draw
 		stroke_color = nil
 	}
 	setmetatable(svg, Lvg_svg)
@@ -67,7 +68,7 @@ end
 
 function Lvg_svg:draw (x, y)
 	love.graphics.setBlendMode("alpha")
-	love.graphics.setColor(1, 1, 1, 1)
+	love.graphics.setColor(self.tint_color)
 	love.graphics.draw(self.canvas, self.quad, x, y, 0, self.scale_factor, self.scale_factor)
 end
 
