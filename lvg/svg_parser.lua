@@ -384,6 +384,7 @@ function svg_parser:parse_path_c (char)
 		control_points[#control_points + 1] = self.path_vars.path_y2
 		if #control_points == 6 then
 			curve = love.math.newBezierCurve(self.path_vars.path_x, self.path_vars.path_y, unpack(control_points)):render(self.curve_detail)
+			curve = self:remove_double_points(curve)
 			-- oh wtf am I doing
 			-- curve[#curve] = nil
 			-- curve[#curve] = nil
