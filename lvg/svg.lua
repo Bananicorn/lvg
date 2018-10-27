@@ -29,6 +29,7 @@ function Lvg_svg:draw_to_canvas ()
 	end
 	-- self.canvas = love.graphics.newCanvas(w, h, {msaa = 4})
 	self.canvas = love.graphics.newCanvas(w, h)
+	print(w,h)
 
 	love.graphics.push()
 	love.graphics.setBlendMode("alpha")

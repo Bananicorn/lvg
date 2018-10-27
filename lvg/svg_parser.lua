@@ -85,10 +85,13 @@ function svg_parser:iterator_to_table (iterator)
 end
 
 function svg_parser.split (str, sep)
-	local sep, fields = sep or ":", {}
-	local pattern = string.format("([^%s]+)", sep)
-	str:gsub(pattern, function(c) fields[#fields+1] = c end)
-	return fields
+	if str and sep then
+		local sep, fields = sep or ":", {}
+		local pattern = string.format("([^%s]+)", sep)
+		str:gsub(pattern, function(c) fields[#fields+1] = c end)
+		return fields
+	end
+	return nil
 end
 
 --for parsing svg files - obviously
@@ -108,6 +111,48 @@ end
 
 function svg_parser:is_number (attr)
 	return type(tonumber(attr)) == "number"
+end
+
+--currently not taking stroke into account, because that's a whole different beast
+function svg_parser:calc_viewbox ()
+	local vx, vy, vw, vh
+	local max_x = -math.huge
+	local max_y = -math.huge
+	local min_x = math.huge
+	local min_y = math.huge
+	for i = 1, #self.objects do
+		local object = self.objects[i]
+		if self.infos[i].type == "p" then --path
+			for j = 1, #object do
+				for k = 1, #object[j], 2 do
+					max_x = math.max(object[j][k], max_x)
+					max_y = math.max(object[j][k + 1], max_y)
+					min_x = math.min(object[j][k], min_x)
+					min_y = math.min(object[j][k + 1], min_y)
+				end
+			end
+		elseif self.infos[i].type == "c" then --circle
+			max_x = math.max(object[1] + object[3], max_x)
+			max_y = math.max(object[2] + object[3], max_y)
+			min_x = math.min(object[1] - object[3], min_x)
+			min_y = math.min(object[2] - object[3], min_y)
+		elseif self.infos[i].type == "r" then --rectangle
+			max_x = math.max(object[1] + object[3], max_x)
+			max_y = math.max(object[2] + object[4], max_y)
+			min_x = math.min(object[1] + object[3], min_x)
+			min_y = math.min(object[2] + object[4], min_y)
+		elseif self.infos[i].type == "e" then --ellipse
+			max_x = math.max(object[1] + object[3], max_x)
+			max_y = math.max(object[2] + object[4], max_y)
+			min_x = math.min(object[1] - object[3], min_x)
+			min_y = math.min(object[2] - object[4], min_y)
+		end
+	end
+	vx = min_x
+	vy = min_y
+	vw = max_x - min_x
+	vh = max_y - min_y
+	return vx, vy, vw, vh
 end
 
 function svg_parser:is_valid_color (color_string)
@@ -131,12 +176,19 @@ function svg_parser:load_svg (filename)
 	end
 	local svg = require("lvg.xmlSimple").newParser():ParseXmlText(content)
 	local tag = svg:children()
-	local vx, vy, vw, vh = unpack(self.split(svg["svg"]["@viewBox"], " "))
-	vx = tonumber(vx)
-	vy = tonumber(vy)
-	vw = tonumber(vw)
-	vh = tonumber(vh)
+	local vx, vy, vw, vh = 0, 0, 1, 1
+	local viewbox = self.split(svg["svg"]["@viewBox"], " ")
 	self:traverse_tree(svg)
+	
+	if viewbox then
+		vx, vy, vw, vh = unpack(viewbox)
+		vx = tonumber(vx)
+		vy = tonumber(vy)
+		vw = tonumber(vw)
+		vh = tonumber(vh)
+	else
+		vx, vy, vw, vh = self:calc_viewbox()
+	end
 	return_svg = Lvg_svg:create(
 		self.objects,
 		self.object_styles,

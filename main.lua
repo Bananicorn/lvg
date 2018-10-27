@@ -2,7 +2,8 @@ function love.load ()
 	love.graphics.setBackgroundColor(1,1,1,1)
 	svg_parser = require("lvg.svg_parser") --you only need one of these
 	shapes_svg = svg_parser:load_svg("assets/test.svg")
-	bananicorn_svg = svg_parser:load_svg("assets/bananicorn.svg")
+	bananicorn_svg = svg_parser:load_svg("assets/Ghostbusters.svg")
+	-- bananicorn_svg = svg_parser:load_svg("assets/bananicorn.svg")
 	initial_window_height = 600
 end
 
