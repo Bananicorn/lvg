@@ -123,9 +123,12 @@ function svg_parser:is_valid_color (color_string)
 	return is_color
 end
 
-function svg_parser:load_svg (file)
-	local file = assert(io.open(love.filesystem.getSourceBaseDirectory() .. '/' .. file, "rb"))
-	local content = file:read("*all")
+function svg_parser:load_svg (filename)
+	local content = love.filesystem.read("string", filename)
+	if not content then
+		file = assert(io.open(love.filesystem.getSourceBaseDirectory() .. '/' .. filename, "rb"))
+		content = file:read("*all")
+	end
 	local svg = require("lvg.xmlSimple").newParser():ParseXmlText(content)
 	local tag = svg:children()
 	local vx, vy, vw, vh = unpack(self.split(svg["svg"]["@viewBox"], " "))

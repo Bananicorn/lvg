@@ -27,14 +27,16 @@ function Lvg_svg:draw_to_canvas ()
 	if self.canvas then
 		self.canvas:release()
 	end
-	self.canvas = love.graphics.newCanvas(w, h, {msaa = 4})
+	-- self.canvas = love.graphics.newCanvas(w, h, {msaa = 4})
+	self.canvas = love.graphics.newCanvas(w, h)
 
 	love.graphics.push()
 	love.graphics.setBlendMode("alpha")
-	love.graphics.setCanvas({self.canvas, stencil=true, msaa=4})
+	love.graphics.setCanvas({self.canvas, stencil=true})
 	self:direct_draw(-self.viewbox.x * self.scale_factor, -self.viewbox.y * self.scale_factor)
 	love.graphics.pop()
 	love.graphics.setCanvas()
+	love.graphics.setColor(1, 1, 1, 1)
 end
 
 function Lvg_svg:do_lines_intersect (x1, y1, x2, y2, x3, y3, x4, y4)
