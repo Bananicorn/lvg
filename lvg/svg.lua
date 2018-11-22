@@ -24,12 +24,13 @@ end
 function Lvg_svg:draw_to_canvas ()
 	local w = (self.viewbox.w - self.viewbox.x) * self.scale_factor
 	local h = (self.viewbox.h - self.viewbox.y) * self.scale_factor
-	if self.canvas then
+	love.graphics.setColor(1,0,0,1)
+	if self.canvas ~= nil then
 		self.canvas:release()
+		self.canvas = nil
 	end
 	-- self.canvas = love.graphics.newCanvas(w, h, {msaa = 4})
 	self.canvas = love.graphics.newCanvas(w, h)
-	print(w,h)
 
 	love.graphics.push()
 	love.graphics.setBlendMode("alpha")
@@ -72,7 +73,9 @@ end
 function Lvg_svg:draw (x, y)
 	love.graphics.setBlendMode("alpha")
 	love.graphics.setColor(self.tint_color)
-	love.graphics.draw(self.canvas, self.quad, x, y, 0, self.scale_factor, self.scale_factor)
+	if self.canvas ~= nil then
+		love.graphics.draw(self.canvas, self.quad, x, y, 0, self.scale_factor, self.scale_factor)
+	end
 end
 
 function Lvg_svg:resize (scale_factor)
