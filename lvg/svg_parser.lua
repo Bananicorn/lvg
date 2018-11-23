@@ -96,6 +96,16 @@ end
 
 --for parsing svg files - obviously
 function svg_parser.path_next_number (str)
+	--[[
+	
+	okay, so an explanation of the pattern:
+	This gets the a decimal, or non-decimal number, and also includes signs (it searches greedily after the decimal point)
+	(%-?%d+%.?%d*)
+
+	this marks the end of the pattern, which means either a comma, a space, or any regular letter except for e,
+	since that is used for scientific notation
+	 [a-df-zA-DF-Z,]
+	]]--
 	return tonumber(str:match("(%-?%d+%.?%d*)[ a-df-zA-DF-Z,]"))
 end
 
