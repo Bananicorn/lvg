@@ -96,7 +96,7 @@ end
 
 --for parsing svg files - obviously
 function svg_parser.path_next_number (str)
-	return tonumber(str:match("(%-?%d+%.?%d-)[ %D]"))
+	return tonumber(str:match("(%-?%d+%.?%d*)[ a-df-zA-DF-Z,]"))
 end
 
 --just returns the INDEX of the next svg command (a single letter) in the string
@@ -150,8 +150,8 @@ function svg_parser:calc_viewbox ()
 	end
 	vx = min_x
 	vy = min_y
-	vw = max_x - min_x
-	vh = max_y - min_y
+	vw = max_x
+	vh = max_y
 	return vx, vy, vw, vh
 end
 
