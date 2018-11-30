@@ -70,13 +70,14 @@ function Lvg_svg:does_path_self_intersect (path)
 	return false
 end
 
-function Lvg_svg:draw (x, y)
-	-- love.graphics.setColor(0,0,1,1)
-	-- love.graphics.rectangle("line", x, y, self.viewbox.w - self.viewbox.x, self.viewbox.h - self.viewbox.y)
+function Lvg_svg:draw (x, y, rot, offset_x, offset_y)
+	local rot = rot or 0
+	local offset_x = offset_x or 0
+	local offset_y = offset_y or 0
 	love.graphics.setBlendMode("alpha")
 	love.graphics.setColor(self.tint_color)
 	if self.canvas ~= nil then
-		love.graphics.draw(self.canvas, self.quad, x, y, 0, self.scale_factor, self.scale_factor)
+		love.graphics.draw(self.canvas, self.quad, x, y, rot, self.scale_factor, self.scale_factor, offset_x, offset_y)
 	end
 end
 
