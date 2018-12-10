@@ -266,10 +266,10 @@ function svg_parser:parse_style_value (val_string)
 	local value = val_string
 	if value == "none" or value == "" then
 		value = nil
-	elseif self:is_value_list(value) then
-		value = self.split(value, ",")
 	elseif self:is_number(val_string) then
 		value = tonumber(val_string)
+	elseif self:is_value_list(value) then
+		value = self.split(value, ",")
 	elseif self:is_valid_color(val_string) then
 		value = self:parse_color(val_string)
 	elseif val_string:find("%d+.?%d*") then
@@ -281,17 +281,34 @@ function svg_parser:parse_style_value (val_string)
 	return value
 end
 
+function svg_parser:post_process_styles (styles)
+	--this should also be the place to apply transformations
+	if styles.fill_opacity then
+		if styles.fill then
+			styles.fill[4] = styles.fill_opacity * styles.fill[4]
+		end
+		styles.fill_opacity = nil
+	end
+	if styles.stroke_opacity then
+		if styles.stroke then
+			styles.stroke[4] = styles.stroke_opacity * styles.stroke[4]
+		end
+		styles.stroke_opacity = nil
+	end
+	return styles
+end
+
 function svg_parser:get_styles (tag)
 	if tag["@style"] then
 		local styles = {}
-		local style_string = tag["@style"]
+		local style_string = tag["@style"] .. ";" --our pattern doesn't work if we don't append a semicolon here
 		local attributes = style_string:gmatch("[^;].-:.-[;$]")
 		for attr in attributes do
 			local name = self.split(attr, ":")[1]:gsub("[;:]", ""):gsub("-", "_")
 			local val = self:parse_style_value(self.split(attr, ":")[2]:gsub("[;:]", ""))
 			styles[name] = val
 		end
-		return styles
+		return self:post_process_styles(styles)
 	end
 	return nil
 end

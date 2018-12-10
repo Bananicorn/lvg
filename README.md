@@ -4,7 +4,7 @@ Want to use simple SVGs with *curves* in your Löve game?
 
 Try it with `love ./` while in the project folder and you should see this:
 
-![showcase](https://github.com/Bananicorn/lvg/blob/master/screenshots/try-9.png "Some shapes and a Bananicorn, ripped right from an unsuspecting SVG")
+![showcase](https://github.com/Bananicorn/lvg/blob/master/screenshots/try-10.png "Some shapes and a Bananicorn, ripped right from an unsuspecting SVG")
 
 ## Code example:
 
