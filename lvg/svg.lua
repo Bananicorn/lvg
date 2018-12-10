@@ -6,7 +6,7 @@ function Lvg_svg:create (objects, object_styles, infos, scale_factor, viewbox, i
 		scale_factor = scale_factor,
 		viewbox = viewbox,
 		canvas = nil,
-		quad = love.graphics.newQuad(0, 0, viewbox.w, viewbox.h, viewbox.w, viewbox.h),
+		quad = love.graphics.newQuad(0, 0, viewbox.w * scale_factor, viewbox.h * scale_factor, viewbox.w * scale_factor, viewbox.h * scale_factor),
 		objects = objects,
 		styles = object_styles,
 		infos = infos,
@@ -83,6 +83,7 @@ function Lvg_svg:draw (x, y, rot, offset_x, offset_y)
 end
 
 function Lvg_svg:resize (scale_factor)
+	self.quad = love.graphics.newQuad(0, 0, self.viewbox.w * scale_factor, self.viewbox.h * scale_factor, self.viewbox.w * scale_factor, self.viewbox.h * scale_factor)
 	self.scale_factor = scale_factor
 	self:draw_to_canvas()
 end
