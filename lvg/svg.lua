@@ -21,6 +21,14 @@ function Lvg_svg:create (objects, object_styles, infos, scale_factor, viewbox, i
 	return svg
 end
 
+function Lvg_svg:get_width ()
+	return self.viewbox.w * self.scale_factor
+end
+
+function Lvg_svg:get_height ()
+	return self.viewbox.h * self.scale_factor
+end
+
 function Lvg_svg:draw_to_canvas ()
 	local w = (self.viewbox.w - self.viewbox.x) * self.scale_factor
 	local h = (self.viewbox.h - self.viewbox.y) * self.scale_factor
