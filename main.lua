@@ -8,17 +8,17 @@ function love.load ()
 end
 
 function love.draw ()
-	local new_scale_factor = love.graphics.getHeight() / initial_window_height
-	shapes_svg:draw(0, 20 * new_scale_factor)
-	bananicorn_svg:direct_draw(150 * new_scale_factor, 20 * new_scale_factor)
-	-- love.graphics.setColor(0,0,1,.5)
-	-- love.graphics.rectangle("fill",0,0,800,600)
+	local scale_factor = love.graphics.getHeight() / initial_window_height
+	shapes_svg:draw(0, 20 * scale_factor)
+	bananicorn_svg:draw(150 * scale_factor, 20 * scale_factor)
+	love.graphics.setColor(0,0,0)
+	love.graphics.print(love.timer.getFPS(), 10, 10)
 end
 
 function love.resize ()
-	local new_scale_factor = love.graphics.getHeight() / initial_window_height
-	bananicorn_svg:resize(new_scale_factor)
-	shapes_svg:resize(new_scale_factor)
+	local scale_factor = love.graphics.getHeight() / initial_window_height
+	bananicorn_svg:resize(scale_factor)
+	shapes_svg:resize(scale_factor)
 end
 
 function love.update (dt)

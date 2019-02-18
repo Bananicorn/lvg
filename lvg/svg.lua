@@ -32,17 +32,22 @@ end
 function Lvg_svg:draw_to_canvas ()
 	local w = (self.viewbox.w - self.viewbox.x) * self.scale_factor
 	local h = (self.viewbox.h - self.viewbox.y) * self.scale_factor
-	if self.canvas ~= nil then
-		self.canvas:release()
-		self.canvas = nil
-	end
+	-- if self.canvas ~= nil then
+		-- self.canvas:release()
+		-- self.canvas = nil
+	-- end
 	-- self.canvas = love.graphics.newCanvas(w, h, {msaa = 4})
-	self.canvas = love.graphics.newCanvas(w, h)
+	-- if self.canvas == nil then
+		self.canvas = nil
+		self.canvas = love.graphics.newCanvas(w, h)
+		-- self:direct_draw(-self.viewbox.x * self.scale_factor, -self.viewbox.y * self.scale_factor)
+	-- end
 
 	love.graphics.push()
 	love.graphics.setBlendMode("alpha", "alphamultiply")
 	love.graphics.setCanvas({self.canvas, stencil=true})
 	love.graphics.clear()
+	-- print(self.canvas:type())
 	self:direct_draw(-self.viewbox.x * self.scale_factor, -self.viewbox.y * self.scale_factor)
 	love.graphics.setCanvas()
 	love.graphics.pop()
