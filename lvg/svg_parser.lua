@@ -39,7 +39,7 @@ end
 function svg_parser:remove_double_points (path)
 	for i = 1, #path - 2, 4 do
 		local x, y = path[i], path[i + 1]
-		local x2, y2 = path[i + 2], path[i +3]
+		local x2, y2 = path[i + 2], path[i + 3]
 		if x and y and x2 and y2 then
 			if self:round(x) == self:round(x2) and self:round(y) == self:round(y2) then
 				table.remove(path, i)
@@ -94,19 +94,18 @@ function svg_parser.split (str, sep)
 	return nil
 end
 
---for parsing svg files - obviously
 function svg_parser.path_next_number (str)
+	--This gets the a decimal, or non-decimal number,
+	--and also includes signs (it searches greedily after the decimal point)
+	local numbermatch = "(%-?%d+%.?%d*)"
 	--[[
-	
-	okay, so an explanation of the pattern:
-	This gets the a decimal, or non-decimal number, and also includes signs (it searches greedily after the decimal point)
-	(%-?%d+%.?%d*)
-
-	this marks the end of the pattern, which means either a comma, a space, or any regular letter except for e,
-	since that is used for scientific notation
-	 [a-df-zA-DF-Z,]
+		this marks the end of the pattern, which means either:
+		a space,
+		any regular letter except for e, (since that is used for scientific notation in this format: 1.3241+15),
+		or a comma.
 	]]--
-	return tonumber(str:match("(%-?%d+%.?%d*)[ a-df-zA-DF-Z,]"))
+	local delimitermatch = "[ a-df-zA-DF-Z,]"
+	return tonumber(str:match(numbermatch .. delimitermatch))
 end
 
 --just returns the INDEX of the next svg command (a single letter) in the string
@@ -380,6 +379,9 @@ function svg_parser:parse_path_m (path, char)
 	self.path_vars.first_x = self.path_vars.path_x
 	self.path_vars.first_y = self.path_vars.path_y
 	--here a new subpath begins, anything before the next command is treated as regular straight line_to (L or l)
+
+	self.path_vars.coords = path:sub(path:find(self.path_vars.path_x2) + #tostring(self.path_vars.path_x2), self.next_svg_command(path))
+
 	if self.path_next_number(self.path_vars.coords) then
 		self.path_vars.sub_coords = self.path_vars.coords:gmatch("%-?%d+%.?%d*,%-?%d+%.?%d*")
 		for coord in self.path_vars.sub_coords do
@@ -408,8 +410,8 @@ function svg_parser:parse_path_v (char)
 		end
 		self.path_vars.path_y = self.path_vars.path_y2
 		if self.path_vars.path_y ~= self.path_vars.curr_poly[#self.path_vars.curr_poly] or self.path_vars.path_x ~= self.path_vars.curr_poly[#self.path_vars.curr_poly - 1] then
-			self.path_vars.curr_poly[#self.path_vars.curr_poly + 1] = self.path_vars.path_x
-			self.path_vars.curr_poly[#self.path_vars.curr_poly + 1] = self.path_vars.path_y
+			self.path_vars.curr_poly[#self.path_vars.curr_poly + 1] = self.path_vars.path_x2
+			self.path_vars.curr_poly[#self.path_vars.curr_poly + 1] = self.path_vars.path_y2
 		end
 	end
 end
@@ -423,8 +425,8 @@ function svg_parser:parse_path_h (char)
 		end
 		self.path_vars.path_x = self.path_vars.path_x2
 		if self.path_vars.path_y ~= self.path_vars.curr_poly[#self.path_vars.curr_poly] or self.path_vars.path_x ~= self.path_vars.curr_poly[#self.path_vars.curr_poly - 1] then
-			self.path_vars.curr_poly[#self.path_vars.curr_poly + 1] = self.path_vars.path_x
-			self.path_vars.curr_poly[#self.path_vars.curr_poly + 1] = self.path_vars.path_y
+			self.path_vars.curr_poly[#self.path_vars.curr_poly + 1] = self.path_vars.path_x2
+			self.path_vars.curr_poly[#self.path_vars.curr_poly + 1] = self.path_vars.path_y2
 		end
 	end
 end
@@ -467,9 +469,6 @@ function svg_parser:parse_path_c (char)
 		if #control_points == 6 then
 			curve = love.math.newBezierCurve(self.path_vars.path_x, self.path_vars.path_y, unpack(control_points)):render(self.curve_detail)
 			curve = self:remove_double_points(curve)
-			-- oh wtf am I doing
-			-- curve[#curve] = nil
-			-- curve[#curve] = nil
 			self.path_vars.curr_poly = self:join_paths(self.path_vars.curr_poly, curve)
 			self.path_vars.path_x = self.path_vars.path_x2
 			self.path_vars.path_y = self.path_vars.path_y2
