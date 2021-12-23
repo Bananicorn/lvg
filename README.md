@@ -1,6 +1,6 @@
 # lvg - Lovable Vector Graphics (display SVGs in the Löve engine)
 
-##Disclaimer: This will never be a fully standards conformant svg renderer, because that includes THE ENTIRE HTML SPEC
+## Disclaimer: This will never be a fully standards conformant svg renderer, because that includes THE ENTIRE HTML SPEC
 
 Want to use simple SVGs with *curves* in your Löve game?
 
