@@ -1,5 +1,7 @@
 # lvg - Lovable Vector Graphics (display SVGs in the Löve engine)
 
+##Disclaimer: This will never be a fully standards conformant svg renderer, because that includes THE ENTIRE HTML SPEC
+
 Want to use simple SVGs with *curves* in your Löve game?
 
 Try it with `love ./` while in the project folder and you should see this:
@@ -31,19 +33,19 @@ function love.resize ()
 	shapes_svg:resize(new_scale_factor)
 end
 ```
-## Note:
-currently, every path is drawn with the even-odd fill rule, but I'm working on implementing nonzero-winding as well
-
-At this point in time this is *not* a feature-complete SVG renderer.
-Not by a long shot - but I've only just begun.
+## Currently **not** supported:
+- Style blocks
+- Transforms
+- A whole boatload of other stuff
 
 ## Currently supported:
 ### Shapes
+- Groups with only translation transforms
 - Rectangles (fill & stroke)
 - Circles (fill & stroke)
 - Ellipses (fill and stroke)
 - Paths (stroke and even-odd fill-rule)
 
 ### Styles (*only inline*)
-- basic fill and stroke color
-- stroke width
+- Basic fill and stroke color
+- Stroke width
