@@ -1,4 +1,10 @@
 require("lvg.svg")
+
+--some patterns for re-use
+local number_match = "%-?%d+%.?%d*"
+local number_capture = "(" .. number_match .. ")"
+local comma_match = "%s-,%s-"
+
 local svg_parser = {
 	scale_factor = 1,
 	decimal_precision = 2,
@@ -95,17 +101,14 @@ function svg_parser.split (str, sep)
 end
 
 function svg_parser.path_next_number (str)
-	--This gets the a decimal, or non-decimal number,
-	--and also includes signs (it searches greedily after the decimal point)
-	local numbermatch = "(%-?%d+%.?%d*)"
 	--[[
 		this marks the end of the pattern, which means either:
 		a space,
 		any regular letter except for e, (since that is used for scientific notation in this format: 1.3241+15),
 		or a comma.
 	]]--
-	local delimitermatch = "[ a-df-zA-DF-Z,]"
-	return tonumber(str:match(numbermatch .. delimitermatch))
+	local delimiter_match = "[ a-df-zA-DF-Z,]"
+	return tonumber(str:match(number_capture .. delimiter_match))
 end
 
 --just returns the INDEX of the next svg command (a single letter) in the string
@@ -114,8 +117,7 @@ function svg_parser.next_svg_command (str)
 end
 
 function svg_parser:is_value_list (attr)
-	local num = "%d+%.?%d*"
-	return attr:find(num .. "%s*,%s*" .. num)
+	return attr:find(number_match .. comma_match .. number_match)
 end
 
 function svg_parser:is_number (attr)
@@ -124,14 +126,13 @@ end
 
 --currently not taking stroke into account, because that's a whole different beast
 function svg_parser:calc_viewbox ()
-	local vx, vy, vw, vh
 	local max_x = -math.huge
 	local max_y = -math.huge
 	local min_x = math.huge
 	local min_y = math.huge
 	for i = 1, #self.objects do
 		local object = self.objects[i]
-		if self.infos[i].type == "p" then --path
+		if self.infos[i].tag_type == "p" then --path
 			for j = 1, #object do
 				for k = 1, #object[j], 2 do
 					max_x = math.max(object[j][k], max_x)
@@ -140,28 +141,24 @@ function svg_parser:calc_viewbox ()
 					min_y = math.min(object[j][k + 1], min_y)
 				end
 			end
-		elseif self.infos[i].type == "c" then --circle
+		elseif self.infos[i].tag_type == "c" then --circle
 			max_x = math.max(object[1] + object[3], max_x)
 			max_y = math.max(object[2] + object[3], max_y)
 			min_x = math.min(object[1] - object[3], min_x)
 			min_y = math.min(object[2] - object[3], min_y)
-		elseif self.infos[i].type == "r" then --rectangle
+		elseif self.infos[i].tag_type == "r" then --rectangle
 			max_x = math.max(object[1] + object[3], max_x)
 			max_y = math.max(object[2] + object[4], max_y)
 			min_x = math.min(object[1] + object[3], min_x)
 			min_y = math.min(object[2] + object[4], min_y)
-		elseif self.infos[i].type == "e" then --ellipse
+		elseif self.infos[i].tag_type == "e" then --ellipse
 			max_x = math.max(object[1] + object[3], max_x)
 			max_y = math.max(object[2] + object[4], max_y)
 			min_x = math.min(object[1] - object[3], min_x)
 			min_y = math.min(object[2] - object[4], min_y)
 		end
 	end
-	vx = min_x
-	vy = min_y
-	vw = max_x
-	vh = max_y
-	return vx, vy, vw, vh
+	return min_x, min_y, max_x, max_y
 end
 
 function svg_parser:is_valid_color (color_string)
@@ -185,9 +182,9 @@ function svg_parser:load_svg (filename)
 	end
 	local svg = require("lvg.xmlSimple").newParser():ParseXmlText(content)
 	local tag = svg:children()
-	local vx, vy, vw, vh = 0, 0, 1, 1
+	local vx, vy, vw, vh = 0, 0, 100, 100
 	local viewbox = self.split(svg["svg"]["@viewBox"], " ")
-	self:traverse_tree(svg)
+	self:traverse_tree(svg, 0, 0)
 	
 	if viewbox then
 		vx, vy, vw, vh = unpack(viewbox)
@@ -211,11 +208,12 @@ function svg_parser:load_svg (filename)
 end
 
 function svg_parser:get_infos(tag)
-	--type is the most important attribute in here
-	local type = tag:name():sub(1,1):lower()
+	--tag_type is the most important attribute in here -- oh who am I to judge ;)?
+	local tag_type = tag:name():sub(1,1):lower()
 	--we search for title and desc attributes
 	local title = nil
 	local desc = nil
+	local transform = nil
 	if tag:children() then
 		if tag["title"] then
 			title = tag["title"]:value()
@@ -228,14 +226,14 @@ function svg_parser:get_infos(tag)
 		transform = tag["@transform"]
 	end
 	return {
-		type = type,
+		tag_type = tag_type,
 		title = title,
 		transform = transform,
 		desc = desc
 	}
 end
 
-function svg_parser:traverse_tree (parent_tag)
+function svg_parser:traverse_tree (parent_tag, origin_x, origin_y)
 	local tags = parent_tag:children()
 	if tags then
 		for i = 1, #tags do
@@ -244,14 +242,42 @@ function svg_parser:traverse_tree (parent_tag)
 					local object = self["parse_" .. tags[i]:name()](self, tags[i])
 					local infos = self:get_infos(tags[i])
 					local styles = self:get_styles(tags[i])
+					object = self:apply_transforms(object, infos.transform)
+					object = self:apply_parent_origin(object, style, origin_x, origin_y)
 					self:add_object(tags[i]:name(), object, styles, infos)
 				else
-					self:traverse_tree(tags[i], self.scale_factor)
+					local object = self:parse_container(tags[i])
+					local infos = self:get_infos(tags[i])
+					local styles = self:get_styles(tags[i])
+					object = self:apply_parent_origin(object, style, origin_x, origin_y)
+					object = self:apply_transforms(object, infos.transform)
+
+					self:traverse_tree(tags[i], object[1], object[2])
 				end
 			end
 		end
 	end
 	return nil
+end
+
+function svg_parser:apply_parent_origin (object, style, origin_x, origin_y)
+	--parse paths and objects
+	if type(object[1]) == "table" then 
+		for i = 1, #object do
+			for j = 1, #object[i], 2 do
+				object[i][j] = object[i][j] + origin_x
+				object[i][j + 1] = object[i][j + 1] + origin_y
+			end
+		end
+	elseif object[1] and object[2] then
+		object[1] = object[1] + origin_x
+		object[2] = object[2] + origin_y
+	end
+	return object
+end
+
+function svg_parser:merge_styles (style, style_to_inherit)
+	return style
 end
 
 function svg_parser:add_object (name, object, styles, infos)
@@ -271,8 +297,8 @@ function svg_parser:parse_style_value (val_string)
 		value = self.split(value, ",")
 	elseif self:is_valid_color(val_string) then
 		value = self:parse_color(val_string)
-	elseif val_string:find("%d+.?%d*") then
-		value = val_string:match("%d+.?%d*")
+	elseif val_string:find(number_match) then
+		value = val_string:match(number_match)
 		value = tonumber(value)
 	else
 		value = {0, 0, 0, 0}
@@ -312,14 +338,23 @@ function svg_parser:get_styles (tag)
 	return nil
 end
 
+function svg_parser:parse_container (tag)
+	local x = tonumber(tag["@x"]) or 0
+	local y = tonumber(tag["@y"]) or 0
+	return {
+		x,
+		y
+	}
+end
+
 function svg_parser:parse_circle (tag)
-	local shape_x = tonumber(tag["@cx"])
-	local shape_y = tonumber(tag["@cy"])
+	local x = tonumber(tag["@cx"])
+	local y = tonumber(tag["@cy"])
 	local radius = tonumber(tag["@r"])
 
 	return {
-		shape_x,
-		shape_y,
+		x,
+		y,
 		radius
 	}
 end
@@ -383,7 +418,7 @@ function svg_parser:parse_path_m (path, char)
 	self.path_vars.coords = path:sub(path:find(self.path_vars.path_x2) + #tostring(self.path_vars.path_x2), self.next_svg_command(path))
 
 	if self.path_next_number(self.path_vars.coords) then
-		self.path_vars.sub_coords = self.path_vars.coords:gmatch("%-?%d+%.?%d*,%-?%d+%.?%d*")
+		self.path_vars.sub_coords = self.path_vars.coords:gmatch(number_match .. comma_match .. number_match)
 		for coord in self.path_vars.sub_coords do
 			self.path_vars.path_x2 = tonumber(self.split(coord, ",")[1])
 			self.path_vars.path_y2 = tonumber(self.split(coord, ",")[2])
@@ -402,7 +437,7 @@ function svg_parser:parse_path_m (path, char)
 end
 
 function svg_parser:parse_path_v (char)
-	self.path_vars.sub_coords = self.path_vars.coords:gmatch("%-?%d+%.?%d*")
+	self.path_vars.sub_coords = self.path_vars.coords:gmatch(number_match)
 	for coord in self.path_vars.sub_coords do
 		self.path_vars.path_y2 = tonumber(coord)
 		if char == "v" then
@@ -417,7 +452,7 @@ function svg_parser:parse_path_v (char)
 end
 
 function svg_parser:parse_path_h (char)
-	self.path_vars.sub_coords = self.path_vars.coords:gmatch("%-?%d+%.?%d*")
+	self.path_vars.sub_coords = self.path_vars.coords:gmatch(number_match)
 	for coord in self.path_vars.sub_coords do
 		self.path_vars.path_x2 = tonumber(coord)
 		if char == "h" then
@@ -432,7 +467,7 @@ function svg_parser:parse_path_h (char)
 end
 
 function svg_parser:parse_path_l (char)
-	self.path_vars.sub_coords = self.path_vars.coords:gmatch("%-?%d+%.?%d*,%-?%d+%.?%d*")
+	self.path_vars.sub_coords = self.path_vars.coords:gmatch(number_match .. comma_match .. number_match)
 
 	for coord in self.path_vars.sub_coords do
 		self.path_vars.path_x2 = tonumber(self.split(coord, ",")[1])
@@ -451,7 +486,7 @@ function svg_parser:parse_path_l (char)
 end
 
 function svg_parser:parse_path_c (char)
-	self.path_vars.sub_coords = self:iterator_to_table(self.path_vars.coords:gmatch("%-?%d+%.?%d*,%-?%d+%.?%d*"))
+	self.path_vars.sub_coords = self:iterator_to_table(self.path_vars.coords:gmatch(number_match .. comma_match .. number_match))
 	local control_points = {}
 	local curve = {}
 
@@ -497,7 +532,7 @@ function svg_parser:parse_path (tag)
 	self:reset_path_vars()
 	local char = ""
 	local return_paths = {}
-	--if there's no type then we just make it an edge shape
+	--if there's no tag_type then we just make it an edge shape
 	local path = tag["@d"]
 	if path then
 		self.path_vars.coords = path
@@ -537,12 +572,40 @@ function svg_parser:parse_path (tag)
 	return return_paths
 end
 
-function svg_parser:apply_transforms (paths, transforms)
-	for i = 0, #paths do
-		for j = 1, #paths[i] do
-			
+function svg_parser:apply_transforms (object, transforms)
+	if not transforms then
+		return object
+	end
+
+	local transform_strings = transforms:gmatch("(%D-)%((.-%))")
+	local translate_x, translate_y = 0, 0
+	for transform_type, value in transform_strings do
+		if transform_type == "translate" then
+			local temp_x = transforms:match(number_capture)
+			local temp_y = transforms:match(comma_match .. number_capture)
+			--split up, because there can also only be an x value for transforms. Thanks.
+			if temp_x then
+				translate_x = translate_x + tonumber(temp_x)
+			end
+			if temp_y then
+				translate_y = translate_y + tonumber(temp_y)
+			end
 		end
 	end
+
+	if type(object[1]) == "table" then 
+		for i = 1, #object do
+			for j = 1, #object[i], 2 do
+				object[i][j] = object[i][j] + translate_x
+				object[i][j + 1] = object[i][j + 1] + translate_y
+			end
+		end
+	elseif object[1] and object[2] then
+		object[1] = object[1] + translate_x
+		object[2] = object[2] + translate_y
+	end
+
+	return object
 end
 
 

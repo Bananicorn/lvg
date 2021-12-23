@@ -40,22 +40,13 @@ end
 function Lvg_svg:draw_to_canvas ()
 	local w = (self.viewbox.w - self.viewbox.x) * self.scale_factor
 	local h = (self.viewbox.h - self.viewbox.y) * self.scale_factor
-	-- if self.canvas then
-		-- self.canvas:release()
-		-- self.canvas = nil
-	-- end
-	-- self.canvas = love.graphics.newCanvas(w, h, {msaa = 4})
-	-- if self.canvas == nil then
-		self.canvas = nil
-		self.canvas = love.graphics.newCanvas(w, h)
-		-- self:direct_draw(-self.viewbox.x * self.scale_factor, -self.viewbox.y * self.scale_factor)
-	-- end
+	self.canvas = nil
+	self.canvas = love.graphics.newCanvas(w, h)
 
 	love.graphics.push()
 	love.graphics.setBlendMode("alpha", "alphamultiply")
 	love.graphics.setCanvas({self.canvas, stencil=true})
 	love.graphics.clear()
-	-- print(self.canvas:type())
 	self:direct_draw(-self.viewbox.x * self.scale_factor, -self.viewbox.y * self.scale_factor)
 	love.graphics.setCanvas()
 	love.graphics.pop()
@@ -124,13 +115,13 @@ function Lvg_svg:direct_draw (x, y, crop_to_viewbox)
 	love.graphics.scale(self.scale_factor)
 	for i = 1, #self.objects do
 		self:set_style(self.styles[i])
-		if self.infos[i].type == "p" then --path
+		if self.infos[i].tag_type == "p" then --path
 			self:draw_path(self.objects[i])
-		elseif self.infos[i].type == "c" then --circle
+		elseif self.infos[i].tag_type == "c" then --circle
 			self:draw_circle(self.objects[i])
-		elseif self.infos[i].type == "r" then --rectangle
+		elseif self.infos[i].tag_type == "r" then --rectangle
 			self:draw_rect(self.objects[i])
-		elseif self.infos[i].type == "e" then --ellipse
+		elseif self.infos[i].tag_type == "e" then --ellipse
 			self:draw_ellipse(self.objects[i])
 		end
 	end
